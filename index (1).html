@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080810">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Card Cycle">
+<title>Card Cycle Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --s1: #10101e;
+  --s2: #181828;
+  --s3: #1f1f35;
+  --border: #28284a;
+  --border2: #32325a;
+  --p: #6c63ff;
+  --p2: #8b83ff;
+  --a1: #ff6b9d;
+  --a2: #ffa94d;
+  --a3: #51cf66;
+  --a4: #339af0;
+  --a5: #f783ac;
+  --text: #eeeef8;
+  --sub: #9898c0;
+  --danger: #ff6b6b;
+  --warn: #ffd43b;
+  --safe: #51cf66;
+  --card-colors: #6c63ff, #ff6b9d, #ffa94d, #51cf66, #339af0, #f783ac, #74c0fc, #a9e34b, #ff8787, #da77f2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  min-height: 100vh;
+  padding: 0 0 90px;
+}
+h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display', sans-serif; }
+
+/* ── HEADER ── */
+.app-header {
+  padding: 28px 20px 20px;
+  background: linear-gradient(180deg, rgba(108,99,255,0.12) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.app-header h1 {
+  font-size: clamp(24px,5vw,38px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #a78bfa, #6c63ff, #60a5fa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.app-header p { color: var(--sub); font-size: 13px; margin-top: 4px; }
+
+/* ── NOTIFICATION BAR ── */
+.notif-bar {
+  margin: 0 16px 18px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.notif-bar .nb-icon { font-size: 22px; }
+.notif-bar .nb-info { flex: 1; min-width: 140px; }
+.notif-bar .nb-info h3 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.notif-bar .nb-info p { font-size: 11px; color: var(--sub); }
+.nb-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.nb-time {
+  background: var(--s2); border: 1px solid var(--border); color: var(--text);
+  padding: 7px 10px; border-radius: 8px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px; outline: none; width: 108px;
+}
+.nb-time:focus { border-color: var(--p); }
+.nb-btn {
+  background: var(--p); border: none; color: white; padding: 8px 16px;
+  border-radius: 8px; cursor: pointer; font-family: 'Clash Display', sans-serif;
+  font-weight: 600; font-size: 13px; transition: opacity 0.2s; white-space: nowrap;
+}
+.nb-btn:hover { opacity: 0.85; }
+.nb-btn.off { background: var(--s2); border: 1px solid var(--border); color: var(--sub); }
+.nb-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.nb-status.on  { background: rgba(81,207,102,0.15); color: var(--safe); }
+.nb-status.off { background: rgba(152,152,192,0.12); color: var(--sub); }
+.nb-status.blocked { background: rgba(255,107,107,0.15); color: var(--danger); }
+
+/* ── TABS ── */
+.tabs-wrap {
+  padding: 0 16px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs-wrap::-webkit-scrollbar { display: none; }
+.tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  min-width: 100%;
+}
+.tab {
+  flex: 1;
+  padding: 9px 10px;
+  border: none; border-radius: 8px;
+  background: transparent; color: var(--sub);
+  cursor: pointer; font-size: 12px; font-weight: 600;
+  transition: all 0.2s; white-space: nowrap;
+}
+.tab.active { background: var(--p); color: white; }
+
+.view { display: none; padding: 0 16px; }
+.view.active { display: block; }
+
+/* ── RECO BANNER ── */
+.reco-banner {
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(96,165,250,0.08));
+  border: 1px solid rgba(108,99,255,0.35);
+  border-radius: 14px; padding: 15px 18px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+}
+.reco-banner .ri { font-size: 24px; }
+.reco-banner h3 { font-size: 13px; font-weight: 700; color: var(--p2); margin-bottom: 3px; }
+.reco-banner p { font-size: 12px; color: var(--sub); }
+.reco-banner strong { color: var(--text); }
+
+/* ── ACTION ROW ── */
+.action-row {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.btn-action {
+  background: var(--s1); border: 1px solid var(--border); color: var(--sub);
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 12px;
+  font-family: 'Cabinet Grotesk', sans-serif; transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-action:hover { border-color: var(--p2); color: var(--p2); }
+.btn-action.add { background: var(--p); border-color: var(--p); color: white; font-weight: 700; }
+.btn-action.add:hover { opacity: 0.85; }
+
+/* ── CARDS GRID ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 14px;
+}
+
+.card-widget {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.card-widget:hover { transform: translateY(-2px); border-color: var(--border2); }
+.card-widget::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-name { font-size: 14px; font-weight: 700; }
+.card-status { font-size: 10px; padding: 3px 9px; border-radius: 20px; font-weight: 600; letter-spacing: 0.3px; }
+.s-optimal { background: rgba(81,207,102,0.15); color: var(--safe); }
+.s-warning  { background: rgba(255,212,59,0.12); color: var(--warn); }
+.s-due      { background: rgba(255,107,107,0.15); color: var(--danger); }
+
+.card-field { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.card-field:last-of-type { border-bottom: none; }
+.fl { color: var(--sub); }
+.fv { color: var(--text); font-weight: 600; }
+
+.float-bar { margin-top: 12px; background: var(--s3); border-radius: 6px; height: 5px; overflow: hidden; }
+.float-fill { height: 100%; border-radius: 6px; transition: width 0.6s; }
+.float-lbl { display: flex; justify-content: space-between; font-size: 10px; margin-top: 4px; color: var(--sub); }
+
+.card-btns { display: flex; gap: 6px; margin-top: 12px; }
+.cbtn {
+  flex: 1; background: var(--s2); border: 1px solid var(--border); color: var(--sub);
+  padding: 7px; border-radius: 8px; cursor: pointer; font-size: 11px;
+  font-family: 'Cabinet Grotesk', sans-serif; transition: all 0.2s; text-align: center;
+}
+.cbtn:hover { border-color: var(--p2); color: var(--p2); }
+.cbtn.del:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── SPENDING ── */
+.section-title {
+  font-size: 18px; font-weight: 700; margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.spend-controls {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+}
+.spend-select {
+  background: var(--s1); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 12px; border-radius: 10px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px; outline: none; cursor: pointer;
+}
+.spend-select:focus { border-color: var(--p); }
+
+.spend-form {
+  background: var(--s1); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px; margin-bottom: 18px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.spend-form .full { grid-column: 1 / -1; }
+
+.sf-group label { display: block; font-size: 11px; color: var(--sub); margin-bottom: 5px; letter-spacing: 0.4px; }
+.sf-group input, .sf-group select {
+  width: 100%; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 11px; color: var(--text);
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 13px; outline: none;
+}
+.sf-group input:focus, .sf-group select:focus { border-color: var(--p); }
+
+.btn-add-spend {
+  background: var(--p); border: none; color: white; padding: 10px 20px;
+  border-radius: 10px; cursor: pointer; font-family: 'Clash Display', sans-serif;
+  font-weight: 600; font-size: 13px; transition: opacity 0.2s; grid-column: 1/-1;
+}
+.btn-add-spend:hover { opacity: 0.85; }
+
+/* SUMMARY CARDS */
+.summary-row {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px; margin-bottom: 18px;
+}
+.sum-card {
+  background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+}
+.sum-card .sum-label { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+.sum-card .sum-val { font-size: 22px; font-weight: 800; font-family: 'Clash Display', sans-serif; }
+.sum-card .sum-sub { font-size: 11px; color: var(--sub); margin-top: 3px; }
+
+/* SPEND TABLE */
+.spend-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.spend-table th {
+  text-align: left; padding: 8px 10px; color: var(--sub);
+  border-bottom: 1px solid var(--border); font-size: 11px; letter-spacing: 0.5px;
+}
+.spend-table td {
+  padding: 10px 10px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.spend-table tr:last-child td { border-bottom: none; }
+.spend-table tr:hover td { background: var(--s2); }
+.del-spend {
+  background: none; border: none; color: var(--sub); cursor: pointer;
+  font-size: 14px; padding: 2px 6px; border-radius: 6px; transition: all 0.2s;
+}
+.del-spend:hover { color: var(--danger); background: rgba(255,107,107,0.1); }
+
+.cat-badge {
+  padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600;
+  background: var(--s2); border: 1px solid var(--border);
+}
+
+/* CHART BAR */
+.chart-section { margin-top: 22px; }
+.chart-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 11px; color: var(--sub); width: 90px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; background: var(--s3); border-radius: 4px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s; display: flex; align-items: center; padding-left: 8px; }
+.bar-fill span { font-size: 10px; color: white; font-weight: 600; white-space: nowrap; }
+
+/* ── CALENDAR ── */
+.cal-wrap { max-width: 820px; margin: 0 auto; }
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.month-nav h2 { font-size: 18px; font-weight: 700; }
+.nav-btn {
+  background: var(--s1); border: 1px solid var(--border); color: var(--text);
+  width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.2s;
+}
+.nav-btn:hover { border-color: var(--p); color: var(--p); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-day-lbl { text-align: center; font-size: 10px; color: var(--sub); padding: 6px 0; letter-spacing: 1px; }
+.cal-day {
+  aspect-ratio: 1; background: var(--s1); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-size: 12px; min-height: 38px;
+}
+.cal-day.empty { background: transparent; border-color: transparent; }
+.cal-day.today { border-color: var(--p); color: var(--p); font-weight: 700; }
+.cal-day.close-d { border-color: var(--danger); background: rgba(255,107,107,0.1); }
+.cal-day.due-d   { border-color: var(--warn);   background: rgba(255,212,59,0.08); }
+.cal-day.optimal { background: rgba(81,207,102,0.07); border-color: rgba(81,207,102,0.25); }
+.dot-row { display: flex; gap: 2px; margin-top: 2px; }
+.dot { width: 5px; height: 5px; border-radius: 50%; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; justify-content: center; }
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--sub); }
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ── STRATEGY ── */
+.strat-grid { display: grid; gap: 12px; max-width: 820px; margin: 0 auto; }
+.strat-card {
+  background: var(--s1); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 22px; display: flex; gap: 18px;
+}
+.strat-num {
+  font-family: 'Clash Display', sans-serif; font-size: 34px; font-weight: 700;
+  line-height: 1; min-width: 40px;
+  background: linear-gradient(135deg, var(--p), var(--a4));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.strat-body h3 { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+.strat-body p { font-size: 12px; color: var(--sub); line-height: 1.7; }
+.strat-body p strong { color: var(--text); }
+
+/* ── MODAL ── */
+.overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(6px);
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--s1); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 26px; width: 90%; max-width: 420px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+.fg { margin-bottom: 12px; }
+.fg label { display: block; font-size: 11px; color: var(--sub); margin-bottom: 5px; letter-spacing: 0.4px; }
+.fg input, .fg select {
+  width: 100%; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 11px; color: var(--text);
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 13px; outline: none;
+}
+.fg input:focus, .fg select:focus { border-color: var(--p); }
+.modal-acts { display: flex; gap: 8px; margin-top: 18px; }
+.btn-save {
+  flex: 1; background: var(--p); border: none; color: white; padding: 11px;
+  border-radius: 10px; cursor: pointer; font-family: 'Clash Display', sans-serif;
+  font-weight: 700; font-size: 13px; transition: opacity 0.2s;
+}
+.btn-save:hover { opacity: 0.85; }
+.btn-cancel {
+  background: var(--s2); border: 1px solid var(--border); color: var(--sub);
+  padding: 11px 18px; border-radius: 10px; cursor: pointer;
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 12px; transition: all 0.2s;
+}
+.btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--s2); border: 1px solid var(--border2); border-radius: 12px;
+  padding: 12px 20px; font-size: 13px; z-index: 300; transition: transform 0.3s;
+  white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* empty state */
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--sub); font-size: 13px;
+}
+.empty-state .ei { font-size: 36px; margin-bottom: 10px; }
+
+.table-wrap { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>💳 Card Cycle Manager</h1>
+  <p>Unlimited cards · Smart alerts · Spending tracker</p>
+</div>
+
+<!-- NOTIFICATION BAR -->
+<div class="notif-bar">
+  <div class="nb-icon">🔔</div>
+  <div class="nb-info">
+    <h3>Daily Alerts</h3>
+    <p>5-day & 1-day warnings before each due date</p>
+  </div>
+  <div class="nb-controls">
+    <input type="time" class="nb-time" id="nb-time" value="09:00">
+    <button class="nb-btn" id="nb-btn" onclick="toggleNotif()">Enable</button>
+    <span class="nb-status off" id="nb-status">Off</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('cards',this)">💳 Cards</button>
+    <button class="tab" onclick="switchTab('spending',this)">📊 Spending</button>
+    <button class="tab" onclick="switchTab('summary',this)">📈 Summary</button>
+    <button class="tab" onclick="switchTab('calendar',this)">📅 Calendar</button>
+    <button class="tab" onclick="switchTab('strategy',this)">💡 Strategy</button>
+  </div>
+</div>
+
+<!-- ═══ CARDS VIEW ═══ -->
+<div id="view-cards" class="view active">
+  <div class="reco-banner">
+    <div class="ri">⚡</div>
+    <div>
+      <h3>Best Card Today</h3>
+      <p id="reco-text">Add your cards to get a daily recommendation.</p>
+    </div>
+  </div>
+  <div class="action-row">
+    <button class="btn-action add" onclick="openCardModal(null)">＋ Add Card</button>
+    <button class="btn-action" onclick="exportData()">⬇ Export</button>
+    <button class="btn-action" onclick="document.getElementById('imp').click()">⬆ Import</button>
+    <input type="file" id="imp" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- ═══ SPENDING VIEW ═══ -->
+<div id="view-spending" class="view">
+  <div class="section-title">
+    Add Transaction
+  </div>
+  <div class="spend-form">
+    <div class="sf-group full">
+      <label>DESCRIPTION</label>
+      <input type="text" id="sp-desc" placeholder="e.g. Groceries at Walmart">
+    </div>
+    <div class="sf-group">
+      <label>AMOUNT ($)</label>
+      <input type="number" id="sp-amt" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <div class="sf-group">
+      <label>DATE</label>
+      <input type="date" id="sp-date">
+    </div>
+    <div class="sf-group">
+      <label>CARD</label>
+      <select id="sp-card"></select>
+    </div>
+    <div class="sf-group">
+      <label>CATEGORY</label>
+      <select id="sp-cat">
+        <option>🛒 Groceries</option>
+        <option>🍔 Food & Dining</option>
+        <option>⛽ Gas & Transport</option>
+        <option>🛍 Shopping</option>
+        <option>💊 Health</option>
+        <option>🎬 Entertainment</option>
+        <option>🏠 Bills & Utilities</option>
+        <option>✈ Travel</option>
+        <option>📦 Other</option>
+      </select>
+    </div>
+    <button class="btn-add-spend" onclick="addSpend()">＋ Add Transaction</button>
+  </div>
+
+  <div class="section-title" style="margin-top:4px">
+    <span>Transactions</span>
+    <select class="spend-select" id="filter-month" onchange="renderSpendTable()"></select>
+  </div>
+  <div class="table-wrap">
+    <table class="spend-table">
+      <thead>
+        <tr>
+          <th>DATE</th><th>DESCRIPTION</th><th>CARD</th><th>CATEGORY</th><th>AMOUNT</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="spend-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ SUMMARY VIEW ═══ -->
+<div id="view-summary" class="view">
+  <div class="section-title">Monthly Summary</div>
+  <div style="margin-bottom:14px">
+    <select class="spend-select" id="sum-month" onchange="renderSummary()"></select>
+  </div>
+  <div class="summary-row" id="sum-cards"></div>
+  <div class="chart-section">
+    <div class="chart-title">Spending by Category</div>
+    <div class="bar-chart" id="cat-chart"></div>
+  </div>
+  <div class="chart-section" style="margin-top:22px">
+    <div class="chart-title">Spending by Card</div>
+    <div class="bar-chart" id="card-chart"></div>
+  </div>
+</div>
+
+<!-- ═══ CALENDAR VIEW ═══ -->
+<div id="view-calendar" class="view">
+  <div class="cal-wrap">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <h2 id="cal-label"></h2>
+      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--danger)"></div> Statement Close</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--warn)"></div> Payment Due</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(81,207,102,0.5)"></div> Best Spend Window</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STRATEGY VIEW ═══ -->
+<div id="view-strategy" class="view">
+  <div class="strat-grid">
+    <div class="strat-card"><div class="strat-num">01</div><div class="strat-body"><h3>The Float Window</h3><p>Every card has a <strong>statement close date</strong> and a <strong>due date</strong> (~21–25 days later). Spend right after the close — your purchase won't show up until next cycle, giving you up to <strong>~55 days interest-free</strong>.</p></div></div>
+    <div class="strat-card"><div class="strat-num">02</div><div class="strat-body"><h3>Multi-Card Rotation</h3><p>Space your cards' close dates evenly (e.g. every 7–10 days). There's always one card in its "fresh" window. Each week, rotate to the card that just closed. <strong>More cards = more flexibility.</strong></p></div></div>
+    <div class="strat-card"><div class="strat-num">03</div><div class="strat-body"><h3>5-Day Alert Rule</h3><p>This app will <strong>notify you 5 days before</strong> each due date and again on the day itself. Never miss a payment — a single late payment can trigger a penalty APR and hurt your credit score.</p></div></div>
+    <div class="strat-card"><div class="strat-num">04</div><div class="strat-body"><h3>Always Pay in Full</h3><p>Always pay the <strong>full statement balance</strong> — never just the minimum. Interest charges will instantly cancel all float benefits. Set <strong>autopay to full balance</strong> on every card.</p></div></div>
+    <div class="strat-card"><div class="strat-num">05</div><div class="strat-body"><h3>Track Every Spend</h3><p>Use the Spending tab to log every transaction. The Summary tab shows your <strong>monthly breakdown by card and category</strong> so you always know where your money is going.</p></div></div>
+  </div>
+</div>
+
+<!-- CARD MODAL -->
+<div class="overlay" id="card-modal">
+  <div class="modal">
+    <h2 id="cm-title">Add Card</h2>
+    <div class="fg"><label>CARD NAME</label><input type="text" id="cm-name" placeholder="e.g. Chase Sapphire"></div>
+    <div class="fg"><label>STATEMENT CLOSE DATE (day 1–28)</label><input type="number" id="cm-close" min="1" max="28" placeholder="e.g. 5"></div>
+    <div class="fg"><label>PAYMENT DUE DATE (day 1–28)</label><input type="number" id="cm-due" min="1" max="28" placeholder="e.g. 28"></div>
+    <div class="fg"><label>CREDIT LIMIT ($)</label><input type="number" id="cm-limit" placeholder="e.g. 5000"></div>
+    <div class="fg"><label>CURRENT BALANCE ($)</label><input type="number" id="cm-balance" placeholder="e.g. 1200"></div>
+    <div class="fg"><label>CARD COLOR</label>
+      <select id="cm-color">
+        <option value="#6c63ff">Purple</option>
+        <option value="#ff6b9d">Pink</option>
+        <option value="#ffa94d">Orange</option>
+        <option value="#51cf66">Green</option>
+        <option value="#339af0">Blue</option>
+        <option value="#f783ac">Rose</option>
+        <option value="#74c0fc">Sky</option>
+        <option value="#a9e34b">Lime</option>
+        <option value="#ff8787">Red</option>
+        <option value="#da77f2">Violet</option>
+      </select>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('card-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let cards = JSON.parse(localStorage.getItem('ccm2_cards') || '[]');
+let spends = JSON.parse(localStorage.getItem('ccm2_spends') || '[]');
+let notifOn = localStorage.getItem('ccm2_notif') === 'true';
+let notifTime = localStorage.getItem('ccm2_ntime') || '09:00';
+let editIdx = null;
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let notifTick = null;
+
+if (cards.length === 0) {
+  cards = [
+    { id: uid(), name: 'Card 1', close: 1,  due: 25, limit: 5000, balance: 0, color: '#6c63ff' },
+    { id: uid(), name: 'Card 2', close: 8,  due: 3,  limit: 5000, balance: 0, color: '#ff6b9d' },
+    { id: uid(), name: 'Card 3', close: 15, due: 10, limit: 5000, balance: 0, color: '#ffa94d' },
+    { id: uid(), name: 'Card 4', close: 22, due: 17, limit: 5000, balance: 0, color: '#51cf66' },
+  ];
+  save();
+}
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+function save() {
+  try {
+    localStorage.setItem('ccm2_cards', JSON.stringify(cards));
+    localStorage.setItem('ccm2_spends', JSON.stringify(spends));
+  } catch(e) {}
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── SERVICE WORKER & NOTIFICATIONS ───────────────────────────────────────────
+async function regSW() {
+  if ('serviceWorker' in navigator) {
+    try { await navigator.serviceWorker.register('./sw.js'); } catch(e) {}
+  }
+}
+
+function getDaysUntil(dayOfMonth) {
+  const today = new Date().getDate();
+  let diff = dayOfMonth - today;
+  if (diff < 0) diff += 30;
+  return diff;
+}
+
+async function fireNotifs() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const sw = await navigator.serviceWorker.ready;
+  const msgs = [];
+
+  cards.forEach(card => {
+    const days = getDaysUntil(card.due);
+    if (days === 0) {
+      msgs.push({ title: '🚨 PAYMENT DUE TODAY', body: `${card.name} — $${card.balance.toLocaleString()} due TODAY! Pay now.`, urgent: true });
+    } else if (days === 1) {
+      msgs.push({ title: '⚠️ Due Tomorrow', body: `${card.name} — $${card.balance.toLocaleString()} due TOMORROW.`, urgent: true });
+    } else if (days <= 5) {
+      msgs.push({ title: `💳 Due in ${days} days`, body: `${card.name} payment of $${card.balance.toLocaleString()} due in ${days} days.`, urgent: false });
+    }
+    // Optimal spend window
+    const daysSinceClose = (() => { let d = new Date().getDate() - card.close; if (d < 0) d += 30; return d; })();
+    if (daysSinceClose <= 1) {
+      msgs.push({ title: '✨ Best Time to Spend!', body: `${card.name} just closed — max float window open!`, urgent: false });
+    }
+  });
+
+  if (msgs.length === 0) {
+    sw.active.postMessage({ type: 'SHOW_NOTIFICATION', title: '💳 Card Cycle', body: 'All clear today — no urgent payments.', tag: 'ccm-clear' });
+  } else {
+    msgs.forEach((m, i) => sw.active.postMessage({ type: 'SHOW_NOTIFICATION', ...m, tag: `ccm-${i}` }));
+  }
+}
+
+function scheduleNotifs() {
+  if (notifTick) clearInterval(notifTick);
+  if (!notifOn) return;
+  function check() {
+    const now = new Date();
+    const [h, m] = notifTime.split(':').map(Number);
+    const diff = Math.abs(now.getHours() * 60 + now.getMinutes() - (h * 60 + m));
+    if (diff <= 1) {
+      const key = 'ccm_fired_' + now.toDateString();
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        fireNotifs();
+      }
+    }
+  }
+  check();
+  notifTick = setInterval(check, 30000);
+}
+
+async function toggleNotif() {
+  if (!('Notification' in window)) { toast('❌ Notifications not supported'); return; }
+  if (notifOn) {
+    notifOn = false;
+    localStorage.setItem('ccm2_notif', 'false');
+    if (notifTick) clearInterval(notifTick);
+    updateNotifUI(); toast('🔕 Notifications off');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    notifOn = true;
+    notifTime = document.getElementById('nb-time').value;
+    localStorage.setItem('ccm2_notif', 'true');
+    localStorage.setItem('ccm2_ntime', notifTime);
+    await regSW(); scheduleNotifs(); updateNotifUI();
+    toast('✅ Alerts enabled! You\'ll get notified 5 days before each due date.');
+    setTimeout(fireNotifs, 1000);
+  } else {
+    updateNotifUI('blocked'); toast('❌ Permission denied in browser settings');
+  }
+}
+
+function updateNotifUI(override) {
+  const btn = document.getElementById('nb-btn');
+  const status = document.getElementById('nb-status');
+  if (override === 'blocked') {
+    btn.textContent = 'Blocked'; btn.className = 'nb-btn off';
+    status.textContent = 'Blocked'; status.className = 'nb-status blocked'; return;
+  }
+  if (notifOn) {
+    btn.textContent = 'Disable'; btn.className = 'nb-btn off';
+    status.textContent = '✓ On · ' + notifTime; status.className = 'nb-status on';
+  } else {
+    btn.textContent = 'Enable'; btn.className = 'nb-btn';
+    status.textContent = 'Off'; status.className = 'nb-status off';
+  }
+}
+
+// ── CARDS ─────────────────────────────────────────────────────────────────────
+function cardStatus(card) {
+  const today = new Date().getDate();
+  let dc = today - card.close; if (dc < 0) dc += 30;
+  if (dc <= 3) return 'optimal';
+  let dd = card.due - today; if (dd < 0) dd += 30;
+  if (dd <= 5) return 'due';
+  return 'warning';
+}
+
+function floatDays(card) { let d = card.due - card.close; if (d <= 0) d += 30; return d; }
+
+function renderCards() {
+  const grid = document.getElementById('cards-grid');
+  if (cards.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="ei">💳</div><p>No cards yet. Click <strong>+ Add Card</strong> to get started.</p></div>`;
+    document.getElementById('reco-text').textContent = 'Add your first card to get a recommendation.';
+    return;
+  }
+
+  const today = new Date().getDate();
+  let bestCard = null, bestDays = -1;
+  cards.forEach(card => {
+    let dc = today - card.close; if (dc < 0) dc += 30;
+    const left = floatDays(card) - dc;
+    if (left > bestDays) { bestDays = left; bestCard = card; }
+  });
+
+  if (bestCard) {
+    document.getElementById('reco-text').innerHTML =
+      `Use <strong>${bestCard.name}</strong> today — <strong>${bestDays} days</strong> of interest-free float remaining.`;
+  }
+
+  grid.innerHTML = cards.map((card, i) => {
+    const st = cardStatus(card);
+    const fl = floatDays(card);
+    let dc = today - card.close; if (dc < 0) dc += 30;
+    const daysLeft = Math.max(0, fl - dc);
+    const pct = Math.round((daysLeft / fl) * 100);
+    const util = card.limit > 0 ? Math.round((card.balance / card.limit) * 100) : 0;
+    const stLabel = st === 'optimal' ? '✦ OPTIMAL' : st === 'due' ? '⚠ DUE SOON' : '◎ ACTIVE';
+    const stClass = `s-${st}`;
+    const fillColor = pct > 60 ? 'var(--safe)' : pct > 30 ? 'var(--warn)' : 'var(--danger)';
+    const daysUntilDue = getDaysUntil(card.due);
+
+    return `<div class="card-widget" style="">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;background:${card.color}"></div>
+      <div class="card-header">
+        <div class="card-name" style="color:${card.color}">${card.name}</div>
+        <div class="card-status ${stClass}">${stLabel}</div>
+      </div>
+      <div class="card-field"><span class="fl">Closes</span><span class="fv">Day ${card.close}</span></div>
+      <div class="card-field"><span class="fl">Due</span><span class="fv">Day ${card.due} <span style="color:${daysUntilDue<=5?'var(--danger)':'var(--sub)';};font-size:10px">(${daysUntilDue}d away)</span></span></div>
+      <div class="card-field"><span class="fl">Float</span><span class="fv" style="color:${card.color}">${fl} days</span></div>
+      <div class="card-field"><span class="fl">Remaining</span><span class="fv">${daysLeft} days</span></div>
+      <div class="card-field"><span class="fl">Utilization</span><span class="fv">${util}%</span></div>
+      <div class="float-bar"><div class="float-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      <div class="float-lbl"><span>Float left</span><span>${pct}%</span></div>
+      <div class="card-btns">
+        <button class="cbtn" onclick="openCardModal(${i})">✎ Edit</button>
+        <button class="cbtn del" onclick="deleteCard(${i})">✕ Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CARD MODAL ────────────────────────────────────────────────────────────────
+function openCardModal(idx) {
+  editIdx = idx;
+  const title = document.getElementById('cm-title');
+  if (idx === null) {
+    title.textContent = 'Add New Card';
+    document.getElementById('cm-name').value = '';
+    document.getElementById('cm-close').value = '';
+    document.getElementById('cm-due').value = '';
+    document.getElementById('cm-limit').value = '';
+    document.getElementById('cm-balance').value = '';
+    document.getElementById('cm-color').value = '#6c63ff';
+  } else {
+    const c = cards[idx];
+    title.textContent = `Edit ${c.name}`;
+    document.getElementById('cm-name').value = c.name;
+    document.getElementById('cm-close').value = c.close;
+    document.getElementById('cm-due').value = c.due;
+    document.getElementById('cm-limit').value = c.limit;
+    document.getElementById('cm-balance').value = c.balance;
+    document.getElementById('cm-color').value = c.color || '#6c63ff';
+  }
+  document.getElementById('card-modal').classList.add('open');
+}
+
+function saveCard() {
+  const name = document.getElementById('cm-name').value.trim();
+  const close = parseInt(document.getElementById('cm-close').value);
+  const due = parseInt(document.getElementById('cm-due').value);
+  const limit = parseFloat(document.getElementById('cm-limit').value) || 0;
+  const balance = parseFloat(document.getElementById('cm-balance').value) || 0;
+  const color = document.getElementById('cm-color').value;
+
+  if (!name || !close || !due) { toast('❌ Please fill in name, close date and due date'); return; }
+
+  if (editIdx === null) {
+    cards.push({ id: uid(), name, close, due, limit, balance, color });
+    toast('✅ Card added!');
+  } else {
+    cards[editIdx] = { ...cards[editIdx], name, close, due, limit, balance, color };
+    toast('✅ Card updated!');
+  }
+  save(); closeModal('card-modal'); renderCards(); populateCardSelects();
+}
+
+function deleteCard(idx) {
+  if (!confirm(`Delete "${cards[idx].name}"?`)) return;
+  cards.splice(idx, 1);
+  save(); renderCards(); populateCardSelects(); toast('🗑 Card deleted');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── SPENDING ──────────────────────────────────────────────────────────────────
+function populateCardSelects() {
+  const opts = cards.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('sp-card').innerHTML = opts || '<option value="">No cards</option>';
+}
+
+function getMonthOptions() {
+  const months = {};
+  spends.forEach(s => {
+    const d = new Date(s.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months[key] = true;
+  });
+  // Also add current month
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  months[key] = true;
+  return Object.keys(months).sort().reverse();
+}
+
+function populateMonthSelects() {
+  const options = getMonthOptions();
+  const labels = options.map(k => {
+    const [y, m] = k.split('-');
+    const d = new Date(y, m-1, 1);
+    return `<option value="${k}">${d.toLocaleString('default',{month:'long',year:'numeric'})}</option>`;
+  }).join('');
+  ['filter-month', 'sum-month'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = labels;
+  });
+}
+
+function addSpend() {
+  const desc = document.getElementById('sp-desc').value.trim();
+  const amt = parseFloat(document.getElementById('sp-amt').value);
+  const date = document.getElementById('sp-date').value;
+  const cardId = document.getElementById('sp-card').value;
+  const cat = document.getElementById('sp-cat').value;
+
+  if (!desc || !amt || !date || !cardId) { toast('❌ Fill in all fields'); return; }
+
+  spends.push({ id: uid(), desc, amt, date, cardId, cat });
+  spends.sort((a,b) => new Date(b.date) - new Date(a.date));
+  save();
+  document.getElementById('sp-desc').value = '';
+  document.getElementById('sp-amt').value = '';
+  populateMonthSelects();
+  renderSpendTable();
+  renderSummary();
+  toast('✅ Transaction added!');
+}
+
+function deleteSpend(id) {
+  spends = spends.filter(s => s.id !== id);
+  save(); renderSpendTable(); renderSummary(); toast('🗑 Transaction deleted');
+}
+
+function renderSpendTable() {
+  const sel = document.getElementById('filter-month');
+  const month = sel ? sel.value : null;
+  const tbody = document.getElementById('spend-tbody');
+
+  let filtered = spends;
+  if (month) {
+    filtered = spends.filter(s => s.date.startsWith(month));
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--sub);padding:24px">No transactions this month</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(s => {
+    const card = cards.find(c => c.id === s.cardId);
+    const cardName = card ? `<span style="color:${card.color}">${card.name}</span>` : 'Unknown';
+    return `<tr>
+      <td>${new Date(s.date).toLocaleDateString('en-CA')}</td>
+      <td>${s.desc}</td>
+      <td>${cardName}</td>
+      <td><span class="cat-badge">${s.cat}</span></td>
+      <td style="font-weight:700;color:var(--a1)">$${s.amt.toFixed(2)}</td>
+      <td><button class="del-spend" onclick="deleteSpend('${s.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function renderSummary() {
+  const sel = document.getElementById('sum-month');
+  const month = sel ? sel.value : null;
+
+  let filtered = spends;
+  if (month) filtered = spends.filter(s => s.date.startsWith(month));
+
+  const total = filtered.reduce((a,s) => a + s.amt, 0);
+  const txCount = filtered.length;
+  const avg = txCount > 0 ? total / txCount : 0;
+
+  // Most used card
+  const cardTotals = {};
+  filtered.forEach(s => { cardTotals[s.cardId] = (cardTotals[s.cardId] || 0) + s.amt; });
+  const topCardId = Object.keys(cardTotals).sort((a,b) => cardTotals[b]-cardTotals[a])[0];
+  const topCard = cards.find(c => c.id === topCardId);
+
+  document.getElementById('sum-cards').innerHTML = `
+    <div class="sum-card">
+      <div class="sum-label">TOTAL SPENT</div>
+      <div class="sum-val" style="color:var(--a1)">$${total.toFixed(0)}</div>
+      <div class="sum-sub">this month</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">TRANSACTIONS</div>
+      <div class="sum-val" style="color:var(--a4)">${txCount}</div>
+      <div class="sum-sub">total</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">AVG SPEND</div>
+      <div class="sum-val" style="color:var(--a2)">$${avg.toFixed(0)}</div>
+      <div class="sum-sub">per transaction</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">TOP CARD</div>
+      <div class="sum-val" style="color:${topCard?.color||'var(--sub)'};font-size:16px">${topCard?.name||'—'}</div>
+      <div class="sum-sub">${topCardId ? '$'+cardTotals[topCardId].toFixed(0) : 'no data'}</div>
+    </div>`;
+
+  // Category chart
+  const catTotals = {};
+  filtered.forEach(s => { catTotals[s.cat] = (catTotals[s.cat]||0) + s.amt; });
+  const maxCat = Math.max(...Object.values(catTotals), 1);
+  const catColors = ['#6c63ff','#ff6b9d','#ffa94d','#51cf66','#339af0','#f783ac','#74c0fc','#a9e34b','#ff8787'];
+
+  document.getElementById('cat-chart').innerHTML = Object.keys(catTotals)
+    .sort((a,b) => catTotals[b]-catTotals[a])
+    .map((cat, i) => {
+      const pct = Math.round((catTotals[cat]/maxCat)*100);
+      return `<div class="bar-row">
+        <div class="bar-label">${cat.split(' ').slice(1).join(' ')||cat}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${catColors[i%catColors.length]}">
+            <span>$${catTotals[cat].toFixed(0)}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--sub);font-size:13px;padding:10px 0">No data for this month</div>';
+
+  // Card chart
+  const maxCard = Math.max(...Object.values(cardTotals), 1);
+  document.getElementById('card-chart').innerHTML = Object.keys(cardTotals)
+    .sort((a,b) => cardTotals[b]-cardTotals[a])
+    .map(cid => {
+      const c = cards.find(x => x.id === cid);
+      const pct = Math.round((cardTotals[cid]/maxCard)*100);
+      return `<div class="bar-row">
+        <div class="bar-label">${c?.name||'Unknown'}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${c?.color||'#6c63ff'}">
+            <span>$${cardTotals[cid].toFixed(0)}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--sub);font-size:13px;padding:10px 0">No data for this month</div>';
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-label').textContent = `${months[calMonth]} ${calYear}`;
+
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = days.map(d => `<div class="cal-day-lbl">${d}</div>`).join('');
+
+  const first = new Date(calYear, calMonth, 1).getDay();
+  const total = new Date(calYear, calMonth+1, 0).getDate();
+  const now = new Date();
+  const isCurrent = now.getMonth() === calMonth && now.getFullYear() === calYear;
+
+  for (let i = 0; i < first; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= total; d++) {
+    const isToday = isCurrent && d === now.getDate();
+    const closes = cards.filter(c => c.close === d);
+    const dues = cards.filter(c => c.due === d);
+    const isOptimal = cards.some(c => { const x = d-c.close; return x>=0&&x<=3; });
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (closes.length) cls += ' close-d';
+    else if (dues.length) cls += ' due-d';
+    else if (isOptimal) cls += ' optimal';
+
+    const dots = [...closes.map(c=>`<div class="dot" style="background:${c.color}"></div>`),
+                  ...dues.map(c=>`<div class="dot" style="background:var(--warn);opacity:0.8"></div>`)].join('');
+    grid.innerHTML += `<div class="${cls}">${d}<div class="dot-row">${dots}</div></div>`;
+  }
+}
+
+function changeMonth(d) {
+  calMonth += d;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-'+tab).classList.add('active');
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'spending') { populateMonthSelects(); renderSpendTable(); }
+  if (tab === 'summary')  { populateMonthSelects(); renderSummary(); }
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify({cards,spends,v:2},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'card-cycle-backup.json'; a.click();
+  toast('✅ Data exported!');
+}
+
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.cards) { cards = d.cards; spends = d.spends || []; save(); renderCards(); populateCardSelects(); toast('✅ Data imported!'); }
+      else toast('❌ Invalid file');
+    } catch { toast('❌ Could not read file'); }
+  };
+  r.readAsText(file); e.target.value = '';
+}
+
+// ── MODAL CLOSE ON BG ─────────────────────────────────────────────────────────
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Set today's date as default for spending form
+document.getElementById('sp-date').value = new Date().toISOString().slice(0,10);
+
+regSW();
+renderCards();
+populateCardSelects();
+populateMonthSelects();
+updateNotifUI();
+document.getElementById('nb-time').value = notifTime;
+if (notifOn) { scheduleNotifs(); if (Notification.permission==='denied') updateNotifUI('blocked'); }
+</script>
+</body>
+</html>
