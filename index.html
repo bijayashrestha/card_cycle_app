@@ -743,7 +743,7 @@ function renderCards() {
         <div class="card-status ${stClass}">${stLabel}</div>
       </div>
       <div class="card-field"><span class="fl">Closes</span><span class="fv">Day ${card.close}</span></div>
-      <div class="card-field"><span class="fl">Due</span><span class="fv">Day ${card.due} <span style="color:${daysUntilDue<=5?'var(--danger)':'var(--sub)';};font-size:10px">(${daysUntilDue}d away)</span></span></div>
+      <div class="card-field"><span class="fl">Due</span><span class="fv">Day ${card.due} <span style="color:${daysUntilDue<=5?'var(--danger)':'var(--sub)'};font-size:10px">(${daysUntilDue}d away)</span></span></div>
       <div class="card-field"><span class="fl">Float</span><span class="fv" style="color:${card.color}">${fl} days</span></div>
       <div class="card-field"><span class="fl">Remaining</span><span class="fv">${daysLeft} days</span></div>
       <div class="card-field"><span class="fl">Utilization</span><span class="fv">${util}%</span></div>
