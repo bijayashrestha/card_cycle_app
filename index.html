@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Card Cycle">
+<title>Card Cycle Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent1: #7c6af7;
+    --accent2: #f7a26a;
+    --accent3: #6af7b8;
+    --accent4: #f76a8a;
+    --text: #e8e8f0;
+    --muted: #7878a0;
+    --danger: #f76a8a;
+    --safe: #6af7b8;
+    --warn: #f7e06a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+  }
+
+  h1, h2, h3, .card-name { font-family: 'Syne', sans-serif; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .header h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header p { color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+  /* NOTIFICATION BANNER */
+  .notif-banner {
+    max-width: 700px;
+    margin: 0 auto 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .notif-banner .icon { font-size: 24px; }
+
+  .notif-info { flex: 1; min-width: 160px; }
+  .notif-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .notif-info p { font-size: 12px; color: var(--muted); }
+
+  .notif-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .notif-time {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    width: 110px;
+  }
+
+  .notif-time:focus { border-color: var(--accent1); }
+
+  .btn-notif {
+    background: var(--accent1);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-notif:hover { opacity: 0.85; }
+  .btn-notif.off { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+
+  .notif-status {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .notif-status.on { background: rgba(106,247,184,0.15); color: var(--safe); }
+  .notif-status.off { background: rgba(120,120,160,0.15); color: var(--muted); }
+  .notif-status.blocked { background: rgba(247,106,138,0.15); color: var(--danger); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 4px;
+    max-width: 500px;
+    margin: 0 auto 28px;
+    border: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px 6px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .tab.active { background: var(--accent1); color: white; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 14px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .reco-banner {
+    background: linear-gradient(135deg, rgba(124,106,247,0.15), rgba(247,162,106,0.1));
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 14px;
+    padding: 16px 20px;
+    max-width: 1100px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .reco-icon { font-size: 26px; }
+  .reco-text h3 { font-size: 14px; font-weight: 700; color: var(--accent1); margin-bottom: 3px; }
+  .reco-text p { font-size: 12px; color: var(--muted); }
+  .reco-text strong { color: var(--text); }
+
+  .card-widget {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .card-widget:hover { transform: translateY(-2px); }
+
+  .card-widget::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .card-widget:nth-child(1)::before { background: #7c6af7; }
+  .card-widget:nth-child(2)::before { background: #f7a26a; }
+  .card-widget:nth-child(3)::before { background: #6af7b8; }
+  .card-widget:nth-child(4)::before { background: #f76a8a; }
+
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-name { font-size: 15px; font-weight: 700; }
+
+  .card-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .status-optimal { background: rgba(106,247,184,0.15); color: var(--safe); }
+  .status-warning { background: rgba(247,224,106,0.15); color: var(--warn); }
+  .status-due { background: rgba(247,106,138,0.15); color: var(--danger); }
+
+  .card-field { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .card-field:last-of-type { border-bottom: none; }
+  .field-label { color: var(--muted); }
+  .field-value { color: var(--text); font-weight: 500; }
+
+  .float-bar { margin-top: 12px; background: var(--surface2); border-radius: 6px; height: 5px; overflow: hidden; }
+  .float-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+  .float-label { display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: var(--muted); }
+
+  .edit-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 11px;
+    font-family: 'DM Mono', monospace; margin-top: 12px; width: 100%; transition: all 0.2s;
+  }
+  .edit-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  /* DATA ACTIONS */
+  .data-actions {
+    display: flex;
+    gap: 8px;
+    max-width: 1100px;
+    margin: 0 auto 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-data {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 9px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-data:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* CALENDAR */
+  .calendar-container { max-width: 860px; margin: 0 auto; }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .month-nav h2 { font-size: 20px; font-weight: 700; }
+
+  .nav-btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-day-label { text-align: center; font-size: 10px; color: var(--muted); padding: 6px 0; letter-spacing: 1px; }
+
+  .cal-day {
+    aspect-ratio: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; font-size: 12px; min-height: 40px; transition: all 0.15s;
+  }
+
+  .cal-day.empty { background: transparent; border-color: transparent; }
+  .cal-day.today { border-color: var(--accent1); color: var(--accent1); font-weight: 700; }
+  .cal-day.close-date { border-color: var(--danger); background: rgba(247,106,138,0.1); }
+  .cal-day.due-date { border-color: var(--warn); background: rgba(247,224,106,0.1); }
+  .cal-day.optimal { background: rgba(106,247,184,0.08); border-color: rgba(106,247,184,0.25); }
+
+  .dot-row { display: flex; gap: 2px; margin-top: 2px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* STRATEGY */
+  .strategy-grid { max-width: 860px; margin: 0 auto; display: grid; gap: 12px; }
+
+  .strategy-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 22px; display: flex; gap: 18px; align-items: flex-start;
+  }
+
+  .strategy-num {
+    font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; line-height: 1; min-width: 40px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .strategy-body h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .strategy-body p { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .strategy-body p strong { color: var(--text); }
+
+  /* APPS */
+  .apps-grid {
+    max-width: 860px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;
+  }
+
+  .app-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px; transition: border-color 0.2s, transform 0.2s;
+  }
+  .app-card:hover { border-color: var(--accent1); transform: translateY(-2px); }
+
+  .app-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .app-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .app-top h3 { font-size: 14px; font-weight: 700; }
+  .app-top span { font-size: 11px; color: var(--muted); }
+  .app-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .app-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 9px; font-size: 11px; color: var(--muted); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+    z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 26px; width: 90%; max-width: 400px; }
+  .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; }
+  .form-group input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 11px; color: var(--text);
+    font-family: 'DM Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--accent1); }
+
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .btn-save {
+    flex: 1; background: var(--accent1); border: none; color: white; padding: 11px;
+    border-radius: 10px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; transition: opacity 0.2s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+  .btn-cancel {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    padding: 11px 18px; border-radius: 10px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 12px; transition: all 0.2s;
+  }
+  .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 20px; font-size: 13px; color: var(--text); z-index: 200;
+    transition: transform 0.3s ease; white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💳 Card Cycle Manager</h1>
+  <p>Maximize your interest-free float across 4 cards</p>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-banner" id="notif-banner">
+  <div class="icon">🔔</div>
+  <div class="notif-info">
+    <h3>Daily Notifications</h3>
+    <p>Get a reminder every day about upcoming due dates</p>
+  </div>
+  <div class="notif-controls">
+    <input type="time" class="notif-time" id="notif-time" value="09:00">
+    <button class="btn-notif" id="notif-btn" onclick="toggleNotifications()">Enable</button>
+    <span class="notif-status off" id="notif-status">Off</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('cards', event)">Cards</button>
+  <button class="tab" onclick="switchTab('calendar', event)">Calendar</button>
+  <button class="tab" onclick="switchTab('strategy', event)">Strategy</button>
+  <button class="tab" onclick="switchTab('apps', event)">Apps</button>
+</div>
+
+<!-- CARDS VIEW -->
+<div id="view-cards" class="view active">
+  <div class="reco-banner">
+    <div class="reco-icon">⚡</div>
+    <div class="reco-text">
+      <h3>Use Today</h3>
+      <p id="reco-text">Edit your cards to get a recommendation.</p>
+    </div>
+  </div>
+  <div class="data-actions">
+    <button class="btn-data" onclick="exportData()">⬇ Export Data</button>
+    <button class="btn-data" onclick="document.getElementById('import-file').click()">⬆ Import Data</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- CALENDAR VIEW -->
+<div id="view-calendar" class="view">
+  <div class="calendar-container">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <h2 id="month-label"></h2>
+      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Statement Close</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div> Payment Due</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(106,247,184,0.4)"></div> Optimal Spend Window</div>
+    </div>
+  </div>
+</div>
+
+<!-- STRATEGY VIEW -->
+<div id="view-strategy" class="view">
+  <div class="strategy-grid">
+    <div class="strategy-card"><div class="strategy-num">01</div><div class="strategy-body"><h3>The Float Window</h3><p>Every card has a <strong>statement close date</strong> and a <strong>due date</strong> (21–25 days later). Spend <strong>right after</strong> the statement closes — your purchase won't appear until the next statement, giving you up to <strong>~55 days interest-free</strong>.</p></div></div>
+    <div class="strategy-card"><div class="strategy-num">02</div><div class="strategy-body"><h3>The 4-Card Rotation</h3><p>Space your 4 cards' close dates roughly <strong>7–10 days apart</strong>. This creates a rolling cycle where there's always one card in its "fresh" window. Each week, rotate to the card that just closed its statement.</p></div></div>
+    <div class="strategy-card"><div class="strategy-num">03</div><div class="strategy-body"><h3>Never Pay Interest</h3><p>Always pay the <strong>full statement balance</strong> on or before each due date — never just the minimum. The float strategy only works if you avoid interest charges, which would cancel all the benefits.</p></div></div>
+    <div class="strategy-card"><div class="strategy-num">04</div><div class="strategy-body"><h3>Automate Payments</h3><p>Set each card to <strong>autopay the full statement balance</strong> from your bank account 3 days before the due date. This protects your credit score and ensures you never miss a payment.</p></div></div>
+    <div class="strategy-card"><div class="strategy-num">05</div><div class="strategy-body"><h3>Track & Adjust</h3><p>Use the Calendar tab to see all close and due dates at a glance. If two cards have close dates too close together, call the bank to <strong>request a statement date change</strong> — most banks allow this once every 6 months.</p></div></div>
+  </div>
+</div>
+
+<!-- APPS VIEW -->
+<div id="view-apps" class="view">
+  <div class="apps-grid">
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(124,106,247,0.15)">🪙</div><div><h3>YNAB</h3><span>iOS · Android · Web</span></div></div><p class="app-desc">Best-in-class budget app. Syncs with cards, tracks spending by category, and enforces the "give every dollar a job" method.</p><div class="app-tags"><span class="tag">Budgeting</span><span class="tag">Card sync</span><span class="tag">Paid</span></div></div>
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(247,162,106,0.15)">🧾</div><div><h3>Copilot</h3><span>iOS · Mac</span></div></div><p class="app-desc">AI-powered personal finance. Automatically categorizes transactions, shows upcoming due dates, and alerts you before statements close.</p><div class="app-tags"><span class="tag">AI insights</span><span class="tag">Due alerts</span><span class="tag">Paid</span></div></div>
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(106,247,184,0.15)">📊</div><div><h3>Monarch Money</h3><span>iOS · Android · Web</span></div></div><p class="app-desc">Comprehensive money dashboard with multi-card tracking, spending trends, due dates, and cash flow projections.</p><div class="app-tags"><span class="tag">Dashboard</span><span class="tag">Cash flow</span><span class="tag">Paid</span></div></div>
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(247,106,138,0.15)">🏦</div><div><h3>Tally</h3><span>iOS · Android</span></div></div><p class="app-desc">Specifically designed for managing multiple credit cards. Automates payments, tracks due dates, and optimizes which card to pay first.</p><div class="app-tags"><span class="tag">Auto-pay</span><span class="tag">Multi-card</span><span class="tag">Free tier</span></div></div>
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(124,106,247,0.15)">📱</div><div><h3>Credit Karma</h3><span>iOS · Android · Web</span></div></div><p class="app-desc">Free app that tracks all cards, monitors credit score impact, and sends due date reminders. Best free option.</p><div class="app-tags"><span class="tag">Free</span><span class="tag">Credit score</span><span class="tag">Reminders</span></div></div>
+    <div class="app-card"><div class="app-top"><div class="app-icon" style="background:rgba(247,224,106,0.15)">⚡</div><div><h3>Simplifi</h3><span>iOS · Android · Web</span></div></div><p class="app-desc">Real-time spending alerts and cashflow calendar. Shows all upcoming credit card payments on a calendar — perfect for the cycling method.</p><div class="app-tags"><span class="tag">Calendar view</span><span class="tag">Cashflow</span><span class="tag">Paid</span></div></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Edit Card</h2>
+    <div class="form-group"><label>CARD NAME</label><input type="text" id="f-name" placeholder="e.g. Chase Sapphire"></div>
+    <div class="form-group"><label>STATEMENT CLOSE DATE (day of month 1–28)</label><input type="number" id="f-close" min="1" max="28" placeholder="e.g. 5"></div>
+    <div class="form-group"><label>PAYMENT DUE DATE (day of month 1–28)</label><input type="number" id="f-due" min="1" max="28" placeholder="e.g. 28"></div>
+    <div class="form-group"><label>CREDIT LIMIT ($)</label><input type="number" id="f-limit" placeholder="e.g. 5000"></div>
+    <div class="form-group"><label>CURRENT BALANCE ($)</label><input type="number" id="f-balance" placeholder="e.g. 1200"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveCard()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const COLORS = ['#7c6af7','#f7a26a','#6af7b8','#f76a8a'];
+const DEFAULTS = [
+  { name: 'Card 1', close: 1,  due: 25, limit: 5000, balance: 0 },
+  { name: 'Card 2', close: 8,  due: 3,  limit: 5000, balance: 0 },
+  { name: 'Card 3', close: 15, due: 10, limit: 5000, balance: 0 },
+  { name: 'Card 4', close: 22, due: 17, limit: 5000, balance: 0 },
+];
+
+let cards = JSON.parse(localStorage.getItem('ccm_cards') || 'null') || DEFAULTS;
+let notifEnabled = localStorage.getItem('ccm_notif') === 'true';
+let notifTime = localStorage.getItem('ccm_notif_time') || '09:00';
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let editingIdx = null;
+let notifInterval = null;
+
+function save() {
+  try { localStorage.setItem('ccm_cards', JSON.stringify(cards)); } catch(e) {}
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── SERVICE WORKER + NOTIFICATIONS ─────────────────────────────────────────
+async function registerSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      await navigator.serviceWorker.register('./sw.js');
+    } catch(e) { console.log('SW reg failed:', e); }
+  }
+}
+
+function buildNotifMessages() {
+  const today = new Date();
+  const todayDay = today.getDate();
+  const msgs = [];
+
+  cards.forEach(card => {
+    let daysToDue = card.due - todayDay;
+    if (daysToDue < 0) daysToDue += 30;
+
+    if (daysToDue === 0) {
+      msgs.push(`⚠️ ${card.name} payment is DUE TODAY! Pay $${card.balance.toLocaleString()} now.`);
+    } else if (daysToDue <= 3) {
+      msgs.push(`🔴 ${card.name} due in ${daysToDue} day${daysToDue>1?'s':''} — $${card.balance.toLocaleString()} owed.`);
+    } else if (daysToDue <= 7) {
+      msgs.push(`🟡 ${card.name} due in ${daysToDue} days — $${card.balance.toLocaleString()} owed.`);
+    }
+
+    // Optimal window alert
+    let daysSinceClose = todayDay - card.close;
+    if (daysSinceClose < 0) daysSinceClose += 30;
+    if (daysSinceClose >= 0 && daysSinceClose <= 1) {
+      msgs.push(`✨ ${card.name} just closed — best time to spend for max float!`);
+    }
+  });
+
+  return msgs;
+}
+
+async function sendDailyNotification() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+
+  const msgs = buildNotifMessages();
+  const sw = await navigator.serviceWorker.ready;
+
+  if (msgs.length === 0) {
+    sw.active.postMessage({
+      type: 'SCHEDULE_NOTIFICATION',
+      title: '💳 Card Cycle — All Clear',
+      body: 'No urgent payments today. Keep rotating!',
+      tag: 'ccm-daily'
+    });
+  } else {
+    msgs.forEach((msg, i) => {
+      sw.active.postMessage({
+        type: 'SCHEDULE_NOTIFICATION',
+        title: '💳 Card Cycle Alert',
+        body: msg,
+        tag: `ccm-alert-${i}`
+      });
+    });
+  }
+}
+
+function scheduleDaily() {
+  if (notifInterval) clearInterval(notifInterval);
+  if (!notifEnabled) return;
+
+  function checkAndFire() {
+    const now = new Date();
+    const [h, m] = notifTime.split(':').map(Number);
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
+
+    const diff = Math.abs(now - target);
+    if (diff < 60000) { // within 1 minute of target time
+      const lastFired = localStorage.getItem('ccm_last_fired');
+      const todayStr = now.toDateString();
+      if (lastFired !== todayStr) {
+        localStorage.setItem('ccm_last_fired', todayStr);
+        sendDailyNotification();
+      }
+    }
+  }
+
+  checkAndFire();
+  notifInterval = setInterval(checkAndFire, 30000); // check every 30s
+}
+
+async function toggleNotifications() {
+  if (!('Notification' in window)) {
+    showToast('❌ Notifications not supported in this browser');
+    return;
+  }
+
+  if (notifEnabled) {
+    // Turn off
+    notifEnabled = false;
+    localStorage.setItem('ccm_notif', 'false');
+    if (notifInterval) clearInterval(notifInterval);
+    updateNotifUI();
+    showToast('🔕 Notifications turned off');
+    return;
+  }
+
+  // Request permission
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    notifEnabled = true;
+    notifTime = document.getElementById('notif-time').value;
+    localStorage.setItem('ccm_notif', 'true');
+    localStorage.setItem('ccm_notif_time', notifTime);
+    await registerSW();
+    scheduleDaily();
+    updateNotifUI();
+    showToast('✅ Daily notifications enabled at ' + notifTime);
+    // Send a test notification immediately
+    setTimeout(sendDailyNotification, 1000);
+  } else if (perm === 'denied') {
+    updateNotifUI('blocked');
+    showToast('❌ Permission denied — enable in browser settings');
+  }
+}
+
+function updateNotifUI(override) {
+  const btn = document.getElementById('notif-btn');
+  const status = document.getElementById('notif-status');
+
+  if (override === 'blocked') {
+    btn.textContent = 'Blocked';
+    btn.className = 'btn-notif off';
+    status.textContent = 'Blocked in browser';
+    status.className = 'notif-status blocked';
+    return;
+  }
+
+  if (notifEnabled) {
+    btn.textContent = 'Disable';
+    btn.className = 'btn-notif off';
+    status.textContent = '✓ On — ' + notifTime;
+    status.className = 'notif-status on';
+  } else {
+    btn.textContent = 'Enable';
+    btn.className = 'btn-notif';
+    status.textContent = 'Off';
+    status.className = 'notif-status off';
+  }
+}
+
+// ─── CARDS ───────────────────────────────────────────────────────────────────
+function getStatus(card) {
+  const today = new Date().getDate();
+  let daysSinceClose = today - card.close;
+  if (daysSinceClose < 0) daysSinceClose += 30;
+  if (daysSinceClose <= 3) return 'optimal';
+  let daysToDue = card.due - today;
+  if (daysToDue < 0) daysToDue += 30;
+  if (daysToDue <= 5) return 'due';
+  return 'warning';
+}
+
+function floatDays(card) {
+  let d = card.due - card.close;
+  if (d <= 0) d += 30;
+  return d;
+}
+
+function renderCards() {
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+
+  const today = new Date().getDate();
+  let bestCard = null, bestDays = -1;
+  cards.forEach((card, i) => {
+    let daysSinceClose = today - card.close;
+    if (daysSinceClose < 0) daysSinceClose += 30;
+    const daysLeft = floatDays(card) - daysSinceClose;
+    if (daysLeft > bestDays) { bestDays = daysLeft; bestCard = i; }
+  });
+
+  cards.forEach((card, i) => {
+    const status = getStatus(card);
+    const fl = floatDays(card);
+    let daysSinceClose = today - card.close;
+    if (daysSinceClose < 0) daysSinceClose += 30;
+    const daysLeft = Math.max(0, fl - daysSinceClose);
+    const pct = Math.round((daysLeft / fl) * 100);
+    const util = card.limit > 0 ? Math.round((card.balance / card.limit) * 100) : 0;
+    const statusLabel = status === 'optimal' ? '✦ OPTIMAL' : status === 'due' ? '⚠ DUE SOON' : '◎ ACTIVE';
+    const statusClass = `status-${status}`;
+    const fillColor = pct > 60 ? 'var(--safe)' : pct > 30 ? 'var(--warn)' : 'var(--danger)';
+
+    grid.innerHTML += `
+      <div class="card-widget">
+        <div class="card-header">
+          <div class="card-name">${card.name}</div>
+          <div class="card-status ${statusClass}">${statusLabel}</div>
+        </div>
+        <div class="card-field"><span class="field-label">Statement Closes</span><span class="field-value">Day ${card.close}</span></div>
+        <div class="card-field"><span class="field-label">Payment Due</span><span class="field-value">Day ${card.due}</span></div>
+        <div class="card-field"><span class="field-label">Float Window</span><span class="field-value" style="color:${COLORS[i]}">${fl} days</span></div>
+        <div class="card-field"><span class="field-label">Days Remaining</span><span class="field-value">${daysLeft} days left</span></div>
+        <div class="card-field"><span class="field-label">Utilization</span><span class="field-value">${util}% ($${card.balance.toLocaleString()} / $${card.limit.toLocaleString()})</span></div>
+        <div class="float-bar"><div class="float-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+        <div class="float-label"><span>Float remaining</span><span>${pct}%</span></div>
+        <button class="edit-btn" onclick="openModal(${i})">✎ Edit Card</button>
+      </div>`;
+  });
+
+  if (bestCard !== null) {
+    document.getElementById('reco-text').innerHTML =
+      `Use <strong>${cards[bestCard].name}</strong> today — <strong>${bestDays} days</strong> of float remaining before payment is due.`;
+  }
+}
+
+// ─── CALENDAR ────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('month-label').textContent = `${months[currentMonth]} ${currentYear}`;
+
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  days.forEach(d => { grid.innerHTML += `<div class="cal-day-label">${d}</div>`; });
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
+  for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = isCurrentMonth && d === today.getDate();
+    const closeDots = cards.map((c, i) => c.close === d ? COLORS[i] : null).filter(Boolean);
+    const dueDots = cards.map((c, i) => c.due === d ? COLORS[i] : null).filter(Boolean);
+    const isOptimal = cards.some(c => { const diff = d - c.close; return diff >= 0 && diff <= 3; });
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (closeDots.length) cls += ' close-date';
+    else if (dueDots.length) cls += ' due-date';
+    else if (isOptimal) cls += ' optimal';
+
+    const dots = [...closeDots, ...dueDots].map(c => `<div class="dot" style="background:${c}"></div>`).join('');
+    grid.innerHTML += `<div class="${cls}">${d}<div class="dot-row">${dots}</div></div>`;
+  }
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderCalendar();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(idx) {
+  editingIdx = idx;
+  const c = cards[idx];
+  document.getElementById('modal-title').textContent = `Edit ${c.name}`;
+  document.getElementById('f-name').value = c.name;
+  document.getElementById('f-close').value = c.close;
+  document.getElementById('f-due').value = c.due;
+  document.getElementById('f-limit').value = c.limit;
+  document.getElementById('f-balance').value = c.balance;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveCard() {
+  cards[editingIdx] = {
+    name: document.getElementById('f-name').value.trim() || cards[editingIdx].name,
+    close: parseInt(document.getElementById('f-close').value) || cards[editingIdx].close,
+    due: parseInt(document.getElementById('f-due').value) || cards[editingIdx].due,
+    limit: parseFloat(document.getElementById('f-limit').value) || 0,
+    balance: parseFloat(document.getElementById('f-balance').value) || 0,
+  };
+  save();
+  closeModal();
+  renderCards();
+  showToast('✅ Card saved!');
+}
+
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
+function exportData() {
+  const data = { cards, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'card-cycle-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Data exported!');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.cards && Array.isArray(data.cards)) {
+        cards = data.cards;
+        save();
+        renderCards();
+        showToast('✅ Data imported successfully!');
+      } else {
+        showToast('❌ Invalid file format');
+      }
+    } catch(err) {
+      showToast('❌ Could not read file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab, e) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  if (e) e.target.classList.add('active');
+  document.getElementById(`view-${tab}`).classList.add('active');
+  if (tab === 'calendar') renderCalendar();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+registerSW();
+renderCards();
+updateNotifUI();
+document.getElementById('notif-time').value = notifTime;
+
+if (notifEnabled) {
+  scheduleDaily();
+  if (Notification.permission === 'denied') updateNotifUI('blocked');
+}
+</script>
+</body>
+</html>
