@@ -58,39 +58,178 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
 .app-header p { color: var(--sub); font-size: 13px; margin-top: 4px; }
 
 /* ── NOTIFICATION BAR ── */
-.notif-bar {
+/* ── NOTIFICATION WIDGET ── */
+.notif-widget {
   margin: 0 16px 18px;
   background: var(--s1);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 18px;
+  border-radius: 20px;
+  padding: 20px 22px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
 }
-.notif-bar .nb-icon { font-size: 22px; }
-.notif-bar .nb-info { flex: 1; min-width: 140px; }
-.notif-bar .nb-info h3 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-.notif-bar .nb-info p { font-size: 11px; color: var(--sub); }
-.nb-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.nb-time {
-  background: var(--s2); border: 1px solid var(--border); color: var(--text);
-  padding: 7px 10px; border-radius: 8px; font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 13px; outline: none; width: 108px;
+.notif-widget::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(108,99,255,0.07) 0%, transparent 60%);
+  pointer-events: none;
 }
-.nb-time:focus { border-color: var(--p); }
-.nb-btn {
-  background: var(--p); border: none; color: white; padding: 8px 16px;
-  border-radius: 8px; cursor: pointer; font-family: 'Clash Display', sans-serif;
-  font-weight: 600; font-size: 13px; transition: opacity 0.2s; white-space: nowrap;
+/* CLOCK */
+.clock-wrap { position: relative; flex-shrink: 0; }
+.clock-dial {
+  width: 86px; height: 86px; border-radius: 50%;
+  background: var(--s2); border: 2px solid var(--border2);
+  position: relative; cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
-.nb-btn:hover { opacity: 0.85; }
-.nb-btn.off { background: var(--s2); border: 1px solid var(--border); color: var(--sub); }
-.nb-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-.nb-status.on  { background: rgba(81,207,102,0.15); color: var(--safe); }
-.nb-status.off { background: rgba(152,152,192,0.12); color: var(--sub); }
-.nb-status.blocked { background: rgba(255,107,107,0.15); color: var(--danger); }
+.clock-dial:hover { border-color: var(--p); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+.clock-dial.active { border-color: var(--p); box-shadow: 0 0 0 3px rgba(108,99,255,0.2); }
+.clock-ticks {
+  position: absolute; inset: 0; border-radius: 50%;
+}
+.clock-tick {
+  position: absolute; top: 4px; left: 50%;
+  width: 2px; height: 6px; margin-left: -1px;
+  background: var(--border2); border-radius: 2px;
+  transform-origin: 1px 39px;
+}
+.clock-tick.major { height: 9px; background: var(--border); }
+.hour-hand, .min-hand {
+  position: absolute; bottom: 50%; left: 50%;
+  border-radius: 4px 4px 2px 2px;
+  transform-origin: bottom center;
+  transition: transform 0.5s cubic-bezier(0.34,1.4,0.64,1);
+}
+.hour-hand {
+  width: 3px; height: 22px; margin-left: -1.5px;
+  background: linear-gradient(to top, var(--p), var(--p2));
+}
+.min-hand {
+  width: 2px; height: 30px; margin-left: -1px;
+  background: linear-gradient(to top, var(--a1), #ff9ec6);
+}
+.clock-center {
+  position: absolute; top: 50%; left: 50%;
+  width: 7px; height: 7px;
+  background: var(--text); border-radius: 50%;
+  transform: translate(-50%,-50%); z-index: 3;
+  box-shadow: 0 0 6px rgba(255,255,255,0.4);
+}
+.clock-label {
+  text-align: center; margin-top: 8px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--p2);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.clock-label:hover { color: var(--text); }
+.clock-hint {
+  text-align: center; font-size: 10px; color: var(--sub); margin-top: 2px;
+}
+/* TIME POPUP */
+.time-popup {
+  display: none; position: absolute;
+  top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 16px; z-index: 100;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6); width: 220px;
+}
+.time-popup.open { display: block; }
+.time-popup label { font-size: 11px; color: var(--sub); display: block; margin-bottom: 8px; letter-spacing: 0.5px; }
+.time-popup input[type=time] {
+  width: 100%; background: var(--s3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; color: var(--text);
+  font-family: 'Clash Display', sans-serif; font-size: 20px; outline: none; letter-spacing: 2px;
+}
+.time-popup input[type=time]:focus { border-color: var(--p); }
+.tp-btns { display: flex; gap: 8px; margin-top: 10px; }
+.tp-save {
+  flex: 1; background: var(--p); border: none; color: white;
+  padding: 9px; border-radius: 8px; cursor: pointer;
+  font-family: 'Clash Display', sans-serif; font-weight: 700; font-size: 13px;
+  transition: opacity 0.2s;
+}
+.tp-save:hover { opacity: 0.85; }
+.tp-cancel {
+  background: var(--s3); border: 1px solid var(--border); color: var(--sub);
+  padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
+  transition: all 0.2s;
+}
+.tp-cancel:hover { border-color: var(--danger); color: var(--danger); }
+/* NOTIF INFO */
+.notif-info { flex: 1; min-width: 160px; }
+.notif-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; font-family: 'Clash Display', sans-serif; }
+.notif-info p  { font-size: 12px; color: var(--sub); line-height: 1.5; }
+.nb-badge {
+  display: inline-block; margin-top: 8px;
+  font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600;
+}
+.nb-badge.on  { background: rgba(81,207,102,0.15); color: var(--safe); }
+.nb-badge.off { background: rgba(152,152,192,0.1); color: var(--sub); }
+.nb-badge.blocked { background: rgba(255,107,107,0.15); color: var(--danger); }
+/* TOGGLE SWITCH */
+.toggle-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; flex-shrink: 0;
+}
+.toggle-switch {
+  position: relative; width: 64px; height: 34px;
+  cursor: pointer; flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0; border-radius: 34px;
+  background: var(--s3); border: 2px solid var(--border2);
+  transition: all 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  overflow: visible;
+}
+.toggle-switch input:checked + .toggle-track {
+  background: linear-gradient(135deg, #2ecc71, #51cf66);
+  border-color: #51cf66;
+  box-shadow: 0 0 16px rgba(81,207,102,0.4), inset 0 1px 3px rgba(0,0,0,0.1);
+}
+.toggle-switch input:checked + .toggle-track::after {
+  box-shadow: 0 0 8px rgba(81,207,102,0.5), 0 2px 6px rgba(0,0,0,0.3);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute; top: 2px; left: 2px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.35s cubic-bezier(0.34,1.5,0.64,1);
+}
+.toggle-switch input:checked + .toggle-track::after {
+  transform: translateX(30px);
+}
+.toggle-track .t-off, .toggle-track .t-on {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  font-family: 'Clash Display', sans-serif; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.toggle-track .t-off { right: 5px; color: var(--sub); }
+.toggle-track .t-on  { left: 5px;  color: white; opacity: 0; }
+.toggle-switch input:checked + .toggle-track .t-off { opacity: 0; }
+.toggle-switch input:checked + .toggle-track .t-on  { opacity: 1; }
+.toggle-lbl {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+  font-family: 'Clash Display', sans-serif; color: var(--sub);
+  transition: color 0.3s; text-transform: uppercase; text-align: center;
+}
+.toggle-lbl.on { color: var(--safe); }
+.toggle-lbl.blocked { color: var(--danger); }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 16px rgba(81,207,102,0.4), inset 0 1px 3px rgba(0,0,0,0.1); }
+  50%       { box-shadow: 0 0 28px rgba(81,207,102,0.65), inset 0 1px 3px rgba(0,0,0,0.1); }
+}
+.toggle-switch input:checked + .toggle-track {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
 
 /* ── TABS ── */
 .tabs-wrap {
@@ -321,6 +460,38 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
 .strat-body p { font-size: 12px; color: var(--sub); line-height: 1.7; }
 .strat-body p strong { color: var(--text); }
 
+/* ── DAY PICKER ── */
+.day-picker-wrap { position: relative; }
+.day-picker-display {
+  width: 100%; background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 11px; color: var(--sub);
+  font-size: 13px; cursor: pointer; transition: border-color 0.2s;
+  display: flex; align-items: center; justify-content: space-between;
+  user-select: none;
+}
+.day-picker-display.selected { color: var(--text); border-color: var(--p); }
+.day-picker-display:hover { border-color: var(--p2); }
+.dp-arrow { font-size: 10px; transition: transform 0.2s; }
+.day-picker-grid {
+  display: none;
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 12px; z-index: 200;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.day-picker-grid.open { display: grid; }
+.dp-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; font-size: 12px; cursor: pointer;
+  background: var(--s3); border: 1px solid transparent;
+  transition: all 0.15s; color: var(--text);
+}
+.dp-day:hover { background: var(--border); border-color: var(--p2); }
+.dp-day.selected { background: var(--p); color: white; border-color: var(--p); font-weight: 700; }
+.dp-label { text-align: center; font-size: 10px; color: var(--sub); margin-bottom: 6px; letter-spacing: 0.5px; grid-column: 1/-1; }
+
 /* ── MODAL ── */
 .overlay {
   display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
@@ -380,17 +551,44 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
   <p>Unlimited cards · Smart alerts · Spending tracker</p>
 </div>
 
-<!-- NOTIFICATION BAR -->
-<div class="notif-bar">
-  <div class="nb-icon">🔔</div>
-  <div class="nb-info">
-    <h3>Daily Alerts</h3>
-    <p>5-day & 1-day warnings before each due date</p>
+<!-- NOTIFICATION WIDGET -->
+<div class="notif-widget">
+  <!-- CLOCK -->
+  <div class="clock-wrap">
+    <div class="clock-dial" id="clock-dial" onclick="toggleTimePopup()">
+      <div class="clock-ticks" id="clock-ticks"></div>
+      <div class="hour-hand" id="hour-hand"></div>
+      <div class="min-hand"  id="min-hand"></div>
+      <div class="clock-center"></div>
+    </div>
+    <div class="clock-label" onclick="toggleTimePopup()" id="clock-label">09:00</div>
+    <div class="clock-hint">tap to change</div>
+    <!-- TIME POPUP -->
+    <div class="time-popup" id="time-popup">
+      <label>SET ALERT TIME</label>
+      <input type="time" id="nb-time" value="09:00">
+      <div class="tp-btns">
+        <button class="tp-cancel" onclick="closeTimePopup()">Cancel</button>
+        <button class="tp-save" onclick="saveTime()">Save</button>
+      </div>
+    </div>
   </div>
-  <div class="nb-controls">
-    <input type="time" class="nb-time" id="nb-time" value="09:00">
-    <button class="nb-btn" id="nb-btn" onclick="toggleNotif()">Enable</button>
-    <span class="nb-status off" id="nb-status">Off</span>
+  <!-- INFO -->
+  <div class="notif-info">
+    <h3>Daily Alerts</h3>
+    <p>Get notified 5 days &amp; 1 day before each payment due date</p>
+    <span class="nb-badge off" id="nb-status">Off</span>
+  </div>
+  <!-- TOGGLE SWITCH -->
+  <div class="toggle-wrap">
+    <label class="toggle-switch" title="Enable/disable daily alerts">
+      <input type="checkbox" id="notif-toggle" onchange="toggleNotif()">
+      <div class="toggle-track">
+        <span class="t-on">ON</span>
+        <span class="t-off">OFF</span>
+      </div>
+    </label>
+    <div class="toggle-lbl" id="power-lbl">OFF</div>
   </div>
 </div>
 
@@ -528,8 +726,22 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
   <div class="modal">
     <h2 id="cm-title">Add Card</h2>
     <div class="fg"><label>CARD NAME</label><input type="text" id="cm-name" placeholder="e.g. Chase Sapphire"></div>
-    <div class="fg"><label>STATEMENT CLOSE DATE (day 1–28)</label><input type="number" id="cm-close" min="1" max="28" placeholder="e.g. 5"></div>
-    <div class="fg"><label>PAYMENT DUE DATE (day 1–28)</label><input type="number" id="cm-due" min="1" max="28" placeholder="e.g. 28"></div>
+    <div class="fg">
+      <label>STATEMENT CLOSE DATE</label>
+      <div class="day-picker-wrap">
+        <div class="day-picker-display" id="close-display" onclick="toggleDayPicker('close')">Select a day <span class="dp-arrow">▾</span></div>
+        <div class="day-picker-grid" id="close-picker"></div>
+      </div>
+      <input type="hidden" id="cm-close">
+    </div>
+    <div class="fg">
+      <label>PAYMENT DUE DATE</label>
+      <div class="day-picker-wrap">
+        <div class="day-picker-display" id="due-display" onclick="toggleDayPicker('due')">Select a day <span class="dp-arrow">▾</span></div>
+        <div class="day-picker-grid" id="due-picker"></div>
+      </div>
+      <input type="hidden" id="cm-due">
+    </div>
     <div class="fg"><label>CREDIT LIMIT ($)</label><input type="number" id="cm-limit" placeholder="e.g. 5000"></div>
     <div class="fg"><label>CURRENT BALANCE ($)</label><input type="number" id="cm-balance" placeholder="e.g. 1200"></div>
     <div class="fg"><label>CARD COLOR</label>
@@ -653,43 +865,108 @@ function scheduleNotifs() {
 }
 
 async function toggleNotif() {
-  if (!('Notification' in window)) { toast('❌ Notifications not supported'); return; }
+  if (!('Notification' in window)) {
+    toast('❌ Notifications not supported'); updateNotifUI(); return;
+  }
   if (notifOn) {
     notifOn = false;
     localStorage.setItem('ccm2_notif', 'false');
     if (notifTick) clearInterval(notifTick);
-    updateNotifUI(); toast('🔕 Notifications off');
+    updateNotifUI(); toast('🔕 Notifications turned off');
     return;
   }
+  // turning on
   const perm = await Notification.requestPermission();
   if (perm === 'granted') {
     notifOn = true;
-    notifTime = document.getElementById('nb-time').value;
     localStorage.setItem('ccm2_notif', 'true');
     localStorage.setItem('ccm2_ntime', notifTime);
     await regSW(); scheduleNotifs(); updateNotifUI();
-    toast('✅ Alerts enabled! You\'ll get notified 5 days before each due date.');
-    setTimeout(fireNotifs, 1000);
+    toast('✅ Alerts ON! Notified 5 days before each due date.');
+    setTimeout(fireNotifs, 800);
   } else {
-    updateNotifUI('blocked'); toast('❌ Permission denied in browser settings');
+    notifOn = false;
+    updateNotifUI('blocked');
+    toast('❌ Permission denied — allow in browser settings');
   }
 }
 
 function updateNotifUI(override) {
-  const btn = document.getElementById('nb-btn');
-  const status = document.getElementById('nb-status');
+  const toggle   = document.getElementById('notif-toggle');
+  const powerLbl = document.getElementById('power-lbl');
+  const badge    = document.getElementById('nb-status');
   if (override === 'blocked') {
-    btn.textContent = 'Blocked'; btn.className = 'nb-btn off';
-    status.textContent = 'Blocked'; status.className = 'nb-status blocked'; return;
+    if (toggle) toggle.checked = false;
+    powerLbl.textContent = 'BLOCKED'; powerLbl.className = 'toggle-lbl blocked';
+    badge.textContent = 'Blocked — enable in browser settings'; badge.className = 'nb-badge blocked';
+    return;
   }
   if (notifOn) {
-    btn.textContent = 'Disable'; btn.className = 'nb-btn off';
-    status.textContent = '✓ On · ' + notifTime; status.className = 'nb-status on';
+    if (toggle) toggle.checked = true;
+    powerLbl.textContent = 'ON'; powerLbl.className = 'toggle-lbl on';
+    badge.textContent = '✓ Active · ' + notifTime; badge.className = 'nb-badge on';
   } else {
-    btn.textContent = 'Enable'; btn.className = 'nb-btn';
-    status.textContent = 'Off'; status.className = 'nb-status off';
+    if (toggle) toggle.checked = false;
+    powerLbl.textContent = 'OFF'; powerLbl.className = 'toggle-lbl';
+    badge.textContent = 'Off'; badge.className = 'nb-badge off';
   }
 }
+
+// Clock helpers
+function updateClockHands(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const hourDeg = (h % 12) * 30 + m * 0.5;
+  const minDeg  = m * 6;
+  const hh = document.getElementById('hour-hand');
+  const mh = document.getElementById('min-hand');
+  if (hh) hh.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+  if (mh) mh.style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
+  const lbl = document.getElementById('clock-label');
+  if (lbl) lbl.textContent = timeStr;
+}
+
+function buildClockTicks() {
+  const container = document.getElementById('clock-ticks');
+  if (!container) return;
+  let html = '';
+  for (let i = 0; i < 12; i++) {
+    const major = i % 3 === 0;
+    html += `<div class="clock-tick${major?' major':''}" style="transform:rotate(${i*30}deg)"></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function toggleTimePopup() {
+  const popup = document.getElementById('time-popup');
+  const dial  = document.getElementById('clock-dial');
+  popup.classList.toggle('open');
+  dial.classList.toggle('active');
+  if (popup.classList.contains('open')) {
+    document.getElementById('nb-time').value = notifTime;
+  }
+}
+
+function closeTimePopup() {
+  document.getElementById('time-popup').classList.remove('open');
+  document.getElementById('clock-dial').classList.remove('active');
+}
+
+function saveTime() {
+  const val = document.getElementById('nb-time').value;
+  if (!val) return;
+  notifTime = val;
+  localStorage.setItem('ccm2_ntime', notifTime);
+  updateClockHands(notifTime);
+  if (notifOn) { updateNotifUI(); scheduleNotifs(); }
+  closeTimePopup();
+  toast('⏰ Alert time set to ' + notifTime);
+}
+
+// Close popup on outside click
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.clock-wrap');
+  if (wrap && !wrap.contains(e.target)) closeTimePopup();
+});
 
 // ── CARDS ─────────────────────────────────────────────────────────────────────
 function cardStatus(card) {
@@ -727,9 +1004,15 @@ function renderCards() {
   grid.innerHTML = cards.map((card, i) => {
     const st = cardStatus(card);
     const fl = floatDays(card);
+    // Interest-free window = days from close to due + up to 30 days before close posts
+    // Real max: if you spend day after close, you get the FULL billing cycle (~30d) + grace period (fl days)
+    const billingCycle = 30;
+    const interestFreeDays = billingCycle + fl; // e.g. 30 + 25 = up to 55 days
     let dc = today - card.close; if (dc < 0) dc += 30;
-    const daysLeft = Math.max(0, fl - dc);
-    const pct = Math.round((daysLeft / fl) * 100);
+    // Days left = how many interest-free days remain if you spend TODAY
+    // (full window minus days already elapsed since last close)
+    const daysLeft = Math.max(0, interestFreeDays - dc - billingCycle + fl);
+    const pct = Math.round((daysLeft / interestFreeDays) * 100);
     const util = card.limit > 0 ? Math.round((card.balance / card.limit) * 100) : 0;
     const stLabel = st === 'optimal' ? '✦ OPTIMAL' : st === 'due' ? '⚠ DUE SOON' : '◎ ACTIVE';
     const stClass = `s-${st}`;
@@ -744,11 +1027,12 @@ function renderCards() {
       </div>
       <div class="card-field"><span class="fl">Closes</span><span class="fv">Day ${card.close}</span></div>
       <div class="card-field"><span class="fl">Due</span><span class="fv">Day ${card.due} <span style="color:${daysUntilDue<=5?'var(--danger)':'var(--sub)'};font-size:10px">(${daysUntilDue}d away)</span></span></div>
-      <div class="card-field"><span class="fl">Float</span><span class="fv" style="color:${card.color}">${fl} days</span></div>
-      <div class="card-field"><span class="fl">Remaining</span><span class="fv">${daysLeft} days</span></div>
+      <div class="card-field"><span class="fl">Interest-Free Window</span><span class="fv" style="color:${card.color}">${interestFreeDays} days total</span></div>
+      <div class="card-field"><span class="fl">Days Left (Interest-Free)</span><span class="fv">${daysLeft} days</span></div>
+      <div class="card-field"><span class="fl">Best Spend Window</span><span class="fv" style="color:var(--safe)">Day ${card.close}–${(card.close+3)>28?((card.close+3)-28):(card.close+3)}</span></div>
       <div class="card-field"><span class="fl">Utilization</span><span class="fv">${util}%</span></div>
       <div class="float-bar"><div class="float-fill" style="width:${pct}%;background:${fillColor}"></div></div>
-      <div class="float-lbl"><span>Float left</span><span>${pct}%</span></div>
+      <div class="float-lbl"><span>Interest-free time left</span><span>${pct}% · ${daysLeft}/${interestFreeDays} days</span></div>
       <div class="card-btns">
         <button class="cbtn" onclick="openCardModal(${i})">✎ Edit</button>
         <button class="cbtn del" onclick="deleteCard(${i})">✕ Delete</button>
@@ -758,26 +1042,74 @@ function renderCards() {
 }
 
 // ── CARD MODAL ────────────────────────────────────────────────────────────────
+// Day picker
+function buildDayPicker(type) {
+  const grid = document.getElementById(type + '-picker');
+  if (grid.children.length > 0) return; // already built
+  let html = '<div class="dp-label">SELECT DAY OF MONTH</div>';
+  for (let d = 1; d <= 28; d++) {
+    html += `<div class="dp-day" data-day="${d}" onclick="selectDay('${type}',${d})">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function toggleDayPicker(type) {
+  buildDayPicker(type);
+  const grid = document.getElementById(type + '-picker');
+  const other = type === 'close' ? 'due' : 'close';
+  document.getElementById(other + '-picker').classList.remove('open');
+  grid.classList.toggle('open');
+  const disp = document.getElementById(type + '-display');
+  disp.querySelector('.dp-arrow').style.transform = grid.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+function selectDay(type, day) {
+  document.getElementById('cm-' + type).value = day;
+  const disp = document.getElementById(type + '-display');
+  disp.textContent = '';
+  const txt = document.createTextNode(`Day ${day} of every month `);
+  const arrow = document.createElement('span');
+  arrow.className = 'dp-arrow'; arrow.textContent = '▾';
+  disp.appendChild(txt); disp.appendChild(arrow);
+  disp.classList.add('selected');
+  // highlight selected
+  document.getElementById(type + '-picker').querySelectorAll('.dp-day').forEach(el => {
+    el.classList.toggle('selected', parseInt(el.dataset.day) === day);
+  });
+  document.getElementById(type + '-picker').classList.remove('open');
+}
+
 function openCardModal(idx) {
   editIdx = idx;
   const title = document.getElementById('cm-title');
+  // reset pickers
+  ['close','due'].forEach(type => {
+    const grid = document.getElementById(type + '-picker');
+    grid.innerHTML = ''; // force rebuild
+    grid.classList.remove('open');
+    const disp = document.getElementById(type + '-display');
+    disp.innerHTML = `Select a day <span class="dp-arrow">▾</span>`;
+    disp.classList.remove('selected');
+    document.getElementById('cm-' + type).value = '';
+  });
+
   if (idx === null) {
     title.textContent = 'Add New Card';
     document.getElementById('cm-name').value = '';
-    document.getElementById('cm-close').value = '';
-    document.getElementById('cm-due').value = '';
     document.getElementById('cm-limit').value = '';
     document.getElementById('cm-balance').value = '';
     document.getElementById('cm-color').value = '#6c63ff';
   } else {
-    const c = cards[idx];
-    title.textContent = `Edit ${c.name}`;
-    document.getElementById('cm-name').value = c.name;
-    document.getElementById('cm-close').value = c.close;
-    document.getElementById('cm-due').value = c.due;
-    document.getElementById('cm-limit').value = c.limit;
-    document.getElementById('cm-balance').value = c.balance;
-    document.getElementById('cm-color').value = c.color || '#6c63ff';
+    const card = cards[idx];
+    title.textContent = `Edit ${card.name}`;
+    document.getElementById('cm-name').value = card.name;
+    document.getElementById('cm-limit').value = card.limit;
+    document.getElementById('cm-balance').value = card.balance;
+    document.getElementById('cm-color').value = card.color || '#6c63ff';
+    // pre-select days
+    buildDayPicker('close'); buildDayPicker('due');
+    selectDay('close', card.close);
+    selectDay('due', card.due);
   }
   document.getElementById('card-modal').classList.add('open');
 }
@@ -1053,6 +1385,16 @@ document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
 
+// Close day pickers on outside click
+document.addEventListener('click', e => {
+  ['close','due'].forEach(type => {
+    const wrap = document.querySelector(`#${type}-picker`)?.closest('.day-picker-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById(type + '-picker').classList.remove('open');
+    }
+  });
+});
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 // Set today's date as default for spending form
 document.getElementById('sp-date').value = new Date().toISOString().slice(0,10);
@@ -1061,8 +1403,9 @@ regSW();
 renderCards();
 populateCardSelects();
 populateMonthSelects();
+buildClockTicks();
+updateClockHands(notifTime);
 updateNotifUI();
-document.getElementById('nb-time').value = notifTime;
 if (notifOn) { scheduleNotifs(); if (Notification.permission==='denied') updateNotifUI('blocked'); }
 </script>
 </body>
