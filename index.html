@@ -57,7 +57,6 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
 }
 .app-header p { color: var(--sub); font-size: 13px; margin-top: 4px; }
 
-/* ── NOTIFICATION BAR ── */
 /* ── NOTIFICATION WIDGET ── */
 .notif-widget {
   margin: 0 16px 18px;
@@ -78,88 +77,133 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
   background: radial-gradient(ellipse at top left, rgba(108,99,255,0.07) 0%, transparent 60%);
   pointer-events: none;
 }
-/* CLOCK */
-.clock-wrap { position: relative; flex-shrink: 0; }
-.clock-dial {
+
+/* ── MINI CLOCK (display) ── */
+.clock-wrap { position: relative; flex-shrink: 0; text-align: center; }
+.mini-clock {
   width: 86px; height: 86px; border-radius: 50%;
   background: var(--s2); border: 2px solid var(--border2);
   position: relative; cursor: pointer;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-.clock-dial:hover { border-color: var(--p); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
-.clock-dial.active { border-color: var(--p); box-shadow: 0 0 0 3px rgba(108,99,255,0.2); }
-.clock-ticks {
-  position: absolute; inset: 0; border-radius: 50%;
-}
-.clock-tick {
-  position: absolute; top: 4px; left: 50%;
-  width: 2px; height: 6px; margin-left: -1px;
-  background: var(--border2); border-radius: 2px;
-  transform-origin: 1px 39px;
-}
-.clock-tick.major { height: 9px; background: var(--border); }
-.hour-hand, .min-hand {
-  position: absolute; bottom: 50%; left: 50%;
-  border-radius: 4px 4px 2px 2px;
+.mini-clock:hover { border-color: var(--p); box-shadow: 0 0 0 3px rgba(108,99,255,0.2); }
+.mc-tick {
+  position: absolute; top: 5px; left: 50%;
+  width: 2px; border-radius: 2px;
   transform-origin: bottom center;
-  transition: transform 0.5s cubic-bezier(0.34,1.4,0.64,1);
 }
-.hour-hand {
-  width: 3px; height: 22px; margin-left: -1.5px;
-  background: linear-gradient(to top, var(--p), var(--p2));
+.mc-hand {
+  position: absolute; bottom: 50%; left: 50%;
+  border-radius: 3px 3px 0 0;
+  transform-origin: bottom center;
+  transition: transform 0.4s cubic-bezier(0.34,1.4,0.64,1);
 }
-.min-hand {
-  width: 2px; height: 30px; margin-left: -1px;
-  background: linear-gradient(to top, var(--a1), #ff9ec6);
+.mc-hour { width: 3px; height: 22px; margin-left:-1.5px; background: var(--p2); }
+.mc-min  { width: 2px; height: 30px; margin-left:-1px;   background: var(--a1); }
+.mc-center {
+  position: absolute; top:50%; left:50%; width:7px; height:7px;
+  background: var(--text); border-radius:50%;
+  transform:translate(-50%,-50%); z-index:3;
 }
-.clock-center {
-  position: absolute; top: 50%; left: 50%;
-  width: 7px; height: 7px;
-  background: var(--text); border-radius: 50%;
-  transform: translate(-50%,-50%); z-index: 3;
-  box-shadow: 0 0 6px rgba(255,255,255,0.4);
+.clock-time-lbl {
+  margin-top: 7px; font-family:'Clash Display',sans-serif;
+  font-size:14px; font-weight:700; color:var(--p2); cursor:pointer;
 }
-.clock-label {
-  text-align: center; margin-top: 8px;
-  font-family: 'Clash Display', sans-serif;
-  font-size: 13px; font-weight: 700; color: var(--p2);
-  cursor: pointer;
-  transition: color 0.2s;
+.clock-hint { font-size:10px; color:var(--sub); margin-top:2px; }
+
+/* ── CLOCK PICKER MODAL ── */
+.clock-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75); z-index:500;
+  align-items:center; justify-content:center;
+  backdrop-filter: blur(6px);
 }
-.clock-label:hover { color: var(--text); }
-.clock-hint {
-  text-align: center; font-size: 10px; color: var(--sub); margin-top: 2px;
+.clock-modal-overlay.open { display:flex; }
+.clock-modal {
+  background: var(--s1); border:1px solid var(--border2);
+  border-radius:24px; padding:24px; width:90%; max-width:320px;
+  text-align:center;
 }
-/* TIME POPUP */
-.time-popup {
-  display: none; position: absolute;
-  top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
-  background: var(--s2); border: 1px solid var(--border2);
-  border-radius: 14px; padding: 16px; z-index: 100;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.6); width: 220px;
+.clock-modal h3 {
+  font-family:'Clash Display',sans-serif; font-size:16px;
+  font-weight:700; margin-bottom:6px; color:var(--text);
 }
-.time-popup.open { display: block; }
-.time-popup label { font-size: 11px; color: var(--sub); display: block; margin-bottom: 8px; letter-spacing: 0.5px; }
-.time-popup input[type=time] {
-  width: 100%; background: var(--s3); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 12px; color: var(--text);
-  font-family: 'Clash Display', sans-serif; font-size: 20px; outline: none; letter-spacing: 2px;
+.clock-mode-tabs {
+  display:flex; gap:6px; justify-content:center; margin-bottom:16px;
 }
-.time-popup input[type=time]:focus { border-color: var(--p); }
-.tp-btns { display: flex; gap: 8px; margin-top: 10px; }
-.tp-save {
-  flex: 1; background: var(--p); border: none; color: white;
-  padding: 9px; border-radius: 8px; cursor: pointer;
-  font-family: 'Clash Display', sans-serif; font-weight: 700; font-size: 13px;
-  transition: opacity 0.2s;
+.cmt-btn {
+  flex:1; padding:7px; border-radius:8px; border:1px solid var(--border);
+  background:var(--s2); color:var(--sub); cursor:pointer;
+  font-family:'Clash Display',sans-serif; font-size:12px; font-weight:700;
+  transition:all 0.2s;
 }
-.tp-save:hover { opacity: 0.85; }
-.tp-cancel {
-  background: var(--s3); border: 1px solid var(--border); color: var(--sub);
-  padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
-  transition: all 0.2s;
+.cmt-btn.active { background:var(--p); border-color:var(--p); color:white; }
+.clock-display-time {
+  font-family:'Clash Display',sans-serif; font-size:42px; font-weight:700;
+  letter-spacing:2px; margin-bottom:14px;
+  display:flex; align-items:center; justify-content:center; gap:4px;
 }
-.tp-cancel:hover { border-color: var(--danger); color: var(--danger); }
+.cdt-h, .cdt-m {
+  padding:4px 10px; border-radius:10px; cursor:pointer;
+  transition:background 0.2s;
+}
+.cdt-h:hover, .cdt-m:hover { background:var(--s3); }
+.cdt-h.active { background:var(--p); color:white; border-radius:10px; }
+.cdt-m.active { background:var(--a1); color:white; border-radius:10px; }
+.cdt-sep { color:var(--sub); }
+/* big interactive clock face */
+.big-clock-face {
+  width:220px; height:220px; border-radius:50%;
+  background:var(--s2); border:2px solid var(--border2);
+  position:relative; margin:0 auto 16px;
+  cursor:pointer; user-select:none;
+}
+.bcf-num {
+  position:absolute; width:28px; height:28px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'Clash Display',sans-serif; font-size:13px; font-weight:600;
+  color:var(--sub); cursor:pointer; transition:all 0.15s;
+  transform:translate(-50%,-50%);
+}
+.bcf-num:hover { background:var(--s3); color:var(--text); }
+.bcf-num.selected { background:var(--p); color:white; }
+.bcf-num.selected-min { background:var(--a1); color:white; }
+.bcf-hand-line {
+  position:absolute; bottom:50%; left:50%;
+  width:3px; border-radius:3px;
+  transform-origin:bottom center;
+  pointer-events:none; transition:transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+}
+.bcf-center {
+  position:absolute; top:50%; left:50%; width:10px; height:10px;
+  background:var(--text); border-radius:50%;
+  transform:translate(-50%,-50%); z-index:4;
+  box-shadow:0 0 8px rgba(255,255,255,0.3);
+}
+.clock-am-pm {
+  display:flex; gap:8px; justify-content:center; margin-bottom:16px;
+}
+.ampm-btn {
+  padding:6px 20px; border-radius:8px; border:1px solid var(--border);
+  background:var(--s2); color:var(--sub); cursor:pointer;
+  font-family:'Clash Display',sans-serif; font-size:13px; font-weight:700;
+  transition:all 0.2s;
+}
+.ampm-btn.active { background:var(--p2); border-color:var(--p2); color:white; }
+.clock-modal-btns { display:flex; gap:8px; }
+.cm-cancel {
+  flex:1; background:var(--s2); border:1px solid var(--border); color:var(--sub);
+  padding:11px; border-radius:10px; cursor:pointer;
+  font-family:'Clash Display',sans-serif; font-size:13px; transition:all 0.2s;
+}
+.cm-cancel:hover { border-color:var(--danger); color:var(--danger); }
+.cm-save {
+  flex:2; background:var(--p); border:none; color:white;
+  padding:11px; border-radius:10px; cursor:pointer;
+  font-family:'Clash Display',sans-serif; font-weight:700; font-size:13px;
+  transition:opacity 0.2s;
+}
+.cm-save:hover { opacity:0.85; }
 /* NOTIF INFO */
 .notif-info { flex: 1; min-width: 160px; }
 .notif-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; font-family: 'Clash Display', sans-serif; }
@@ -553,25 +597,16 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
 
 <!-- NOTIFICATION WIDGET -->
 <div class="notif-widget">
-  <!-- CLOCK -->
+  <!-- MINI CLOCK -->
   <div class="clock-wrap">
-    <div class="clock-dial" id="clock-dial" onclick="toggleTimePopup()">
-      <div class="clock-ticks" id="clock-ticks"></div>
-      <div class="hour-hand" id="hour-hand"></div>
-      <div class="min-hand"  id="min-hand"></div>
-      <div class="clock-center"></div>
+    <div class="mini-clock" id="mini-clock" onclick="openClockModal()">
+      <canvas id="mc-ticks-canvas" width="86" height="86" style="position:absolute;inset:0;border-radius:50%"></canvas>
+      <div class="mc-hand mc-hour" id="mc-hour"></div>
+      <div class="mc-hand mc-min"  id="mc-min"></div>
+      <div class="mc-center"></div>
     </div>
-    <div class="clock-label" onclick="toggleTimePopup()" id="clock-label">09:00</div>
-    <div class="clock-hint">tap to change</div>
-    <!-- TIME POPUP -->
-    <div class="time-popup" id="time-popup">
-      <label>SET ALERT TIME</label>
-      <input type="time" id="nb-time" value="09:00">
-      <div class="tp-btns">
-        <button class="tp-cancel" onclick="closeTimePopup()">Cancel</button>
-        <button class="tp-save" onclick="saveTime()">Save</button>
-      </div>
-    </div>
+    <div class="clock-time-lbl" id="clock-time-lbl" onclick="openClockModal()">09:00</div>
+    <div class="clock-hint">tap to set time</div>
   </div>
   <!-- INFO -->
   <div class="notif-info">
@@ -589,6 +624,34 @@ h1,h2,h3,.card-name,.tab,.modal h2,.section-title { font-family: 'Clash Display'
       </div>
     </label>
     <div class="toggle-lbl" id="power-lbl">OFF</div>
+  </div>
+</div>
+
+<!-- CLOCK PICKER MODAL -->
+<div class="clock-modal-overlay" id="clock-modal-overlay" onclick="handleClockOverlayClick(event)">
+  <div class="clock-modal" id="clock-modal">
+    <h3>⏰ Set Alert Time</h3>
+    <div class="clock-mode-tabs">
+      <button class="cmt-btn active" id="tab-hour" onclick="setClockMode('hour')">Hour</button>
+      <button class="cmt-btn" id="tab-min"  onclick="setClockMode('min')">Minute</button>
+    </div>
+    <div class="clock-display-time">
+      <span class="cdt-h" id="cdt-h" onclick="setClockMode('hour')">09</span>
+      <span class="cdt-sep">:</span>
+      <span class="cdt-m" id="cdt-m" onclick="setClockMode('min')">00</span>
+    </div>
+    <div class="big-clock-face" id="big-clock-face">
+      <div class="bcf-hand-line" id="bcf-hand" style="background:var(--p)"></div>
+      <div class="bcf-center"></div>
+    </div>
+    <div class="clock-am-pm">
+      <button class="ampm-btn active" id="btn-am" onclick="setAmPm('AM')">AM</button>
+      <button class="ampm-btn" id="btn-pm" onclick="setAmPm('PM')">PM</button>
+    </div>
+    <div class="clock-modal-btns">
+      <button class="cm-cancel" onclick="closeClockModal()">Cancel</button>
+      <button class="cm-save"   onclick="saveClockTime()">Set Alert</button>
+    </div>
   </div>
 </div>
 
@@ -912,61 +975,159 @@ function updateNotifUI(override) {
   }
 }
 
-// Clock helpers
-function updateClockHands(timeStr) {
+// ── MINI CLOCK (display only) ────────────────────────────────────────────────
+function drawMiniClock(timeStr) {
   const [h, m] = timeStr.split(':').map(Number);
   const hourDeg = (h % 12) * 30 + m * 0.5;
   const minDeg  = m * 6;
-  const hh = document.getElementById('hour-hand');
-  const mh = document.getElementById('min-hand');
-  if (hh) hh.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
-  if (mh) mh.style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
-  const lbl = document.getElementById('clock-label');
-  if (lbl) lbl.textContent = timeStr;
-}
-
-function buildClockTicks() {
-  const container = document.getElementById('clock-ticks');
-  if (!container) return;
-  let html = '';
-  for (let i = 0; i < 12; i++) {
-    const major = i % 3 === 0;
-    html += `<div class="clock-tick${major?' major':''}" style="transform:rotate(${i*30}deg)"></div>`;
+  const hEl = document.getElementById('mc-hour');
+  const mEl = document.getElementById('mc-min');
+  if (hEl) hEl.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+  if (mEl) mEl.style.transform = `translateX(-50%) rotate(${minDeg}deg)`;
+  const lbl = document.getElementById('clock-time-lbl');
+  if (lbl) {
+    // Format as 12h for display
+    let hh = h % 12 || 12;
+    let mm = String(m).padStart(2,'0');
+    let ap = h < 12 ? 'AM' : 'PM';
+    lbl.textContent = `${hh}:${mm} ${ap}`;
   }
-  container.innerHTML = html;
-}
-
-function toggleTimePopup() {
-  const popup = document.getElementById('time-popup');
-  const dial  = document.getElementById('clock-dial');
-  popup.classList.toggle('open');
-  dial.classList.toggle('active');
-  if (popup.classList.contains('open')) {
-    document.getElementById('nb-time').value = notifTime;
+  // Draw tick marks on canvas
+  const canvas = document.getElementById('mc-ticks-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,86,86);
+    const cx = 43, cy = 43, r = 38;
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * 30 - 90) * Math.PI / 180;
+      const major = i % 3 === 0;
+      const len = major ? 7 : 4;
+      ctx.beginPath();
+      ctx.moveTo(cx + (r-len)*Math.cos(angle), cy + (r-len)*Math.sin(angle));
+      ctx.lineTo(cx + r*Math.cos(angle),       cy + r*Math.sin(angle));
+      ctx.strokeStyle = major ? '#32325a' : '#28284a';
+      ctx.lineWidth = major ? 2 : 1.5;
+      ctx.stroke();
+    }
   }
 }
 
-function closeTimePopup() {
-  document.getElementById('time-popup').classList.remove('open');
-  document.getElementById('clock-dial').classList.remove('active');
+// ── BIG CLOCK PICKER ──────────────────────────────────────────────────────────
+let cpHour = 9, cpMin = 0, cpAmPm = 'AM', cpMode = 'hour';
+
+function openClockModal() {
+  const [h24, m] = notifTime.split(':').map(Number);
+  cpHour  = h24 % 12 || 12;
+  cpMin   = m;
+  cpAmPm  = h24 < 12 ? 'AM' : 'PM';
+  cpMode  = 'hour';
+  renderBigClock();
+  document.getElementById('clock-modal-overlay').classList.add('open');
 }
 
-function saveTime() {
-  const val = document.getElementById('nb-time').value;
-  if (!val) return;
-  notifTime = val;
+function closeClockModal() {
+  document.getElementById('clock-modal-overlay').classList.remove('open');
+}
+
+function handleClockOverlayClick(e) {
+  if (e.target === document.getElementById('clock-modal-overlay')) closeClockModal();
+}
+
+function setClockMode(mode) {
+  cpMode = mode;
+  document.getElementById('tab-hour').classList.toggle('active', mode==='hour');
+  document.getElementById('tab-min').classList.toggle('active',  mode==='min');
+  document.getElementById('cdt-h').classList.toggle('active', mode==='hour');
+  document.getElementById('cdt-m').classList.toggle('active', mode==='min');
+  renderBigClock();
+}
+
+function setAmPm(val) {
+  cpAmPm = val;
+  document.getElementById('btn-am').classList.toggle('active', val==='AM');
+  document.getElementById('btn-pm').classList.toggle('active', val==='PM');
+  updateClockDisplay();
+}
+
+function updateClockDisplay() {
+  document.getElementById('cdt-h').textContent = String(cpHour).padStart(2,'0');
+  document.getElementById('cdt-m').textContent = String(cpMin).padStart(2,'0');
+}
+
+function renderBigClock() {
+  const face = document.getElementById('big-clock-face');
+  const r = 88; // radius for number placement
+  const size = 220;
+  const cx = size/2, cy = size/2;
+
+  // Remove old numbers
+  face.querySelectorAll('.bcf-num').forEach(el => el.remove());
+
+  if (cpMode === 'hour') {
+    // Place 1–12
+    for (let i = 1; i <= 12; i++) {
+      const angle = (i * 30 - 90) * Math.PI / 180;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      const el = document.createElement('div');
+      el.className = 'bcf-num' + (i === cpHour ? ' selected' : '');
+      el.textContent = i;
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+      el.onclick = () => { cpHour = i; renderBigClock(); updateClockDisplay(); setClockMode('min'); };
+      face.appendChild(el);
+    }
+    // Hand angle for hour
+    const hAngle = (cpHour % 12) * 30 - 90;
+    const hand = document.getElementById('bcf-hand');
+    hand.style.height = '70px';
+    hand.style.width  = '3px';
+    hand.style.marginLeft = '-1.5px';
+    hand.style.background = 'var(--p)';
+    hand.style.transform = `translateX(-50%) rotate(${hAngle + 90}deg)`;
+  } else {
+    // Place 0,5,10...55 (every 5 min)
+    for (let i = 0; i < 12; i++) {
+      const val = i * 5;
+      const angle = (i * 30 - 90) * Math.PI / 180;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      const el = document.createElement('div');
+      const isSelected = Math.round(cpMin / 5) * 5 === val || (val === 0 && cpMin === 0);
+      el.className = 'bcf-num' + (isSelected ? ' selected-min' : '');
+      el.textContent = String(val).padStart(2,'0');
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+      el.onclick = () => { cpMin = val; renderBigClock(); updateClockDisplay(); };
+      face.appendChild(el);
+    }
+    // Hand angle for minutes
+    const mAngle = cpMin * 6 - 90;
+    const hand = document.getElementById('bcf-hand');
+    hand.style.height = '85px';
+    hand.style.width  = '2px';
+    hand.style.marginLeft = '-1px';
+    hand.style.background = 'var(--a1)';
+    hand.style.transform = `translateX(-50%) rotate(${mAngle + 90}deg)`;
+  }
+
+  updateClockDisplay();
+  document.getElementById('btn-am').classList.toggle('active', cpAmPm==='AM');
+  document.getElementById('btn-pm').classList.toggle('active', cpAmPm==='PM');
+}
+
+function saveClockTime() {
+  let h24 = cpHour % 12;
+  if (cpAmPm === 'PM') h24 += 12;
+  notifTime = `${String(h24).padStart(2,'0')}:${String(cpMin).padStart(2,'0')}`;
   localStorage.setItem('ccm2_ntime', notifTime);
-  updateClockHands(notifTime);
-  if (notifOn) { updateNotifUI(); scheduleNotifs(); }
-  closeTimePopup();
-  toast('⏰ Alert time set to ' + notifTime);
+  drawMiniClock(notifTime);
+  if (notifOn) { scheduleNotifs(); updateNotifUI(); }
+  closeClockModal();
+  let displayH = cpHour;
+  let displayM = String(cpMin).padStart(2,'0');
+  toast(`⏰ Alert set for ${displayH}:${displayM} ${cpAmPm}`);
 }
-
-// Close popup on outside click
-document.addEventListener('click', e => {
-  const wrap = document.querySelector('.clock-wrap');
-  if (wrap && !wrap.contains(e.target)) closeTimePopup();
-});
 
 // ── CARDS ─────────────────────────────────────────────────────────────────────
 function cardStatus(card) {
@@ -1003,16 +1164,21 @@ function renderCards() {
 
   grid.innerHTML = cards.map((card, i) => {
     const st = cardStatus(card);
-    const fl = floatDays(card);
-    // Interest-free window = days from close to due + up to 30 days before close posts
-    // Real max: if you spend day after close, you get the FULL billing cycle (~30d) + grace period (fl days)
+    const gracePeriod = floatDays(card); // days from close to due
+    // MAX interest-free window:
+    // If you spend the day AFTER statement closes, the charge won't appear
+    // until the NEXT statement (one full billing cycle ~30 days away),
+    // then you get the grace period on top. So: ~30 + grace = up to ~55 days.
     const billingCycle = 30;
-    const interestFreeDays = billingCycle + fl; // e.g. 30 + 25 = up to 55 days
+    const maxInterestFree = billingCycle + gracePeriod;
+    // Days since last close (how far into the billing cycle we are today)
     let dc = today - card.close; if (dc < 0) dc += 30;
-    // Days left = how many interest-free days remain if you spend TODAY
-    // (full window minus days already elapsed since last close)
-    const daysLeft = Math.max(0, interestFreeDays - dc - billingCycle + fl);
-    const pct = Math.round((daysLeft / interestFreeDays) * 100);
+    // Days remaining interest-free if you spend TODAY:
+    // spending today, charge posts at next close (~30-dc days away),
+    // then grace period starts. Total remaining = (30 - dc) + gracePeriod
+    const daysLeft = Math.max(0, (billingCycle - dc) + gracePeriod);
+    const pct = Math.round((daysLeft / maxInterestFree) * 100);
+    const interestFreeDays = maxInterestFree;
     const util = card.limit > 0 ? Math.round((card.balance / card.limit) * 100) : 0;
     const stLabel = st === 'optimal' ? '✦ OPTIMAL' : st === 'due' ? '⚠ DUE SOON' : '◎ ACTIVE';
     const stClass = `s-${st}`;
@@ -1027,9 +1193,9 @@ function renderCards() {
       </div>
       <div class="card-field"><span class="fl">Closes</span><span class="fv">Day ${card.close}</span></div>
       <div class="card-field"><span class="fl">Due</span><span class="fv">Day ${card.due} <span style="color:${daysUntilDue<=5?'var(--danger)':'var(--sub)'};font-size:10px">(${daysUntilDue}d away)</span></span></div>
-      <div class="card-field"><span class="fl">Interest-Free Window</span><span class="fv" style="color:${card.color}">${interestFreeDays} days total</span></div>
-      <div class="card-field"><span class="fl">Days Left (Interest-Free)</span><span class="fv">${daysLeft} days</span></div>
-      <div class="card-field"><span class="fl">Best Spend Window</span><span class="fv" style="color:var(--safe)">Day ${card.close}–${(card.close+3)>28?((card.close+3)-28):(card.close+3)}</span></div>
+      <div class="card-field"><span class="fl">Max Interest-Free</span><span class="fv" style="color:${card.color}">${interestFreeDays} days</span></div>
+      <div class="card-field"><span class="fl">If you spend TODAY</span><span class="fv" style="color:${daysLeft>20?'var(--safe)':daysLeft>10?'var(--warn)':'var(--danger)'}">${daysLeft} interest-free days left</span></div>
+      <div class="card-field"><span class="fl">Best Day to Spend</span><span class="fv" style="color:var(--safe)">Day ${(card.close%30)+1} of month</span></div>
       <div class="card-field"><span class="fl">Utilization</span><span class="fv">${util}%</span></div>
       <div class="float-bar"><div class="float-fill" style="width:${pct}%;background:${fillColor}"></div></div>
       <div class="float-lbl"><span>Interest-free time left</span><span>${pct}% · ${daysLeft}/${interestFreeDays} days</span></div>
@@ -1403,8 +1569,7 @@ regSW();
 renderCards();
 populateCardSelects();
 populateMonthSelects();
-buildClockTicks();
-updateClockHands(notifTime);
+drawMiniClock(notifTime);
 updateNotifUI();
 if (notifOn) { scheduleNotifs(); if (Notification.permission==='denied') updateNotifUI('blocked'); }
 </script>
