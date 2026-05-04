@@ -1125,11 +1125,19 @@ if (cards.length === 0) {
 }
 
 function uid() { return Math.random().toString(36).slice(2,9); }
-function save() {
+function _localSave() {
   try {
     localStorage.setItem('ccm2_cards', JSON.stringify(cards));
     localStorage.setItem('ccm2_spends', JSON.stringify(spends));
   } catch(e) {}
+}
+
+function save() {
+  _localSave();
+  if (currentUser) {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => saveToFirestore(currentUser.uid), 1500);
+  }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
@@ -2008,15 +2016,7 @@ function setSyncing(on) {
   text.textContent = on ? '⏳ Syncing…' : '☁️ Synced';
 }
 
-// Wrap original save() to also sync to Firestore
-const _localSave = save;
-function save() {
-  _localSave();
-  if (currentUser) {
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => saveToFirestore(currentUser.uid), 1500);
-  }
-}
+// save() already handles Firestore sync above
 
 // ── AI STATEMENT SCANNER ──────────────────────────────────────────────────────
 let aiParsedTx = [];
