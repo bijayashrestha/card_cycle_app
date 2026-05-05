@@ -1599,34 +1599,34 @@ function selectDay(type, day) {
 function openCardModal(idx) {
   editIdx = idx;
   const title = document.getElementById('cm-title');
-  // reset pickers
+
+  // Reset day picker displays safely (no inline grids anymore)
   ['close','due'].forEach(type => {
-    const grid = document.getElementById(type + '-picker');
-    grid.innerHTML = ''; // force rebuild
-    grid.classList.remove('open');
     const disp = document.getElementById(type + '-display');
-    disp.innerHTML = `Select a day <span class="dp-arrow">▾</span>`;
-    disp.classList.remove('selected');
-    document.getElementById('cm-' + type).value = '';
+    if (disp) {
+      disp.innerHTML = `Select a day <span class="dp-arrow">▾</span>`;
+      disp.classList.remove('selected');
+    }
+    const hidden = document.getElementById('cm-' + type);
+    if (hidden) hidden.value = '';
   });
 
   if (idx === null) {
     title.textContent = 'Add New Card';
-    document.getElementById('cm-name').value = '';
-    document.getElementById('cm-limit').value = '';
+    document.getElementById('cm-name').value    = '';
+    document.getElementById('cm-limit').value   = '';
     document.getElementById('cm-balance').value = '';
-    document.getElementById('cm-color').value = '#6c63ff';
+    document.getElementById('cm-color').value   = '#6c63ff';
   } else {
     const card = cards[idx];
     title.textContent = `Edit ${card.name}`;
-    document.getElementById('cm-name').value = card.name;
-    document.getElementById('cm-limit').value = card.limit;
+    document.getElementById('cm-name').value    = card.name;
+    document.getElementById('cm-limit').value   = card.limit;
     document.getElementById('cm-balance').value = card.balance;
-    document.getElementById('cm-color').value = card.color || '#6c63ff';
-    // pre-select days
-    buildDayPicker('close'); buildDayPicker('due');
+    document.getElementById('cm-color').value   = card.color || '#6c63ff';
+    // Pre-fill date displays
     selectDay('close', card.close);
-    selectDay('due', card.due);
+    selectDay('due',   card.due);
   }
   document.getElementById('card-modal').classList.add('open');
 }
